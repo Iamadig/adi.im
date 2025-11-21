@@ -238,14 +238,29 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
     }
   }, [activeSection, isLoading, selectedThought]);
 
-  const handleThoughtClick = (thought: Thought) => {
-    const hasHtml = /<[a-z][\s\S]*>/i.test(thought.content);
-    let html = thought.content;
-    if (!hasHtml) {
-      html = thought.content.split('\n\n').map(p => `<p>${p}</p>`).join('');
+  const handleThoughtClick = async (thought: Thought) => {
+    setIsLoading(true);
+    try {
+      let content = thought.content;
+      if (!content) {
+        content = await notionService.getThoughtContent(thought.id);
+        // Update the thought in the list so we don't fetch again
+        setThoughts(prev => prev.map(t => t.id === thought.id ? { ...t, content } : t));
+        thought = { ...thought, content };
+      }
+
+      const hasHtml = /<[a-z][\s\S]*>/i.test(content);
+      let html = content;
+      if (!hasHtml) {
+        html = content.split('\n\n').map(p => `<p>${p}</p>`).join('');
+      }
+      setThoughtHtml(html);
+      setSelectedThought(thought);
+    } catch (e) {
+      console.error("Failed to load thought content", e);
+    } finally {
+      setIsLoading(false);
     }
-    setThoughtHtml(html);
-    setSelectedThought(thought);
   };
 
   const handlePolish = async () => {
@@ -399,7 +414,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
                     <h2 className="text-xl font-bold text-gray-900 group-hover:text-docs-blue transition-colors decoration-docs-blue underline-offset-2 group-hover:underline">{thought.title}</h2>
                     <span className="text-sm text-gray-500 font-mono">{thought.date}</span>
                   </div>
-                  <p className="text-gray-600 leading-relaxed text-base line-clamp-2">{stripHtml(thought.content)}</p>
+                  <p className="text-gray-600 leading-relaxed text-base line-clamp-2">{thought.description || stripHtml(thought.content)}</p>
                 </article>
               ))}
             </div>

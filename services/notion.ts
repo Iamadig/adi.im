@@ -30,6 +30,18 @@ export const notionService = {
     }
   },
 
+  async getThoughtContent(id: string): Promise<string> {
+    try {
+      const response = await fetch(`/api/notion/thoughts?id=${id}`);
+      if (!response.ok) throw new Error('Failed to fetch content');
+      const data = await response.json();
+      return data.content || '';
+    } catch (error) {
+      console.error('Error fetching Thought Content:', error);
+      return '';
+    }
+  },
+
   // 3. QUOTES
   async getQuotes(): Promise<Quote[]> {
     try {

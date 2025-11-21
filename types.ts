@@ -22,6 +22,7 @@ export interface Thought {
   title: string;
   date: string;
   content: string;
+  description?: string;
   tags: string[];
 }
 
@@ -43,8 +44,8 @@ export interface GuestbookEntry {
   content: string;
   author: string;
   category: string; // New field to track which list this belongs to (Books, Tools, etc.)
-  createdAt: string; 
-  color?: string; 
+  createdAt: string;
+  color?: string;
   isApproved: boolean;
 }
 
@@ -59,7 +60,7 @@ export interface FormatState {
   italic: boolean;
   underline: boolean;
   alignLeft: boolean;
-  alignCenter: boolean; 
+  alignCenter: boolean;
   listOrdered: boolean;
   listBullet: boolean;
 }
