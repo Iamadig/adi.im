@@ -73,6 +73,13 @@ export const guestbookService = {
     };
 
     if (!supabase) {
+      console.warn('Supabase not initialized. Falling back to localStorage.');
+      console.warn('Check environment variables:', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey,
+        url: supabaseUrl ? supabaseUrl.substring(0, 20) + '...' : 'missing'
+      });
+
       // Fallback to localStorage if Supabase not configured
       await new Promise(resolve => setTimeout(resolve, 400));
 
@@ -83,6 +90,8 @@ export const guestbookService = {
 
       return newEntry;
     }
+
+    console.log('Attempting to add entry to Supabase:', { content, category, author: nameToUse });
 
     try {
       const { data, error } = await supabase
@@ -95,23 +104,44 @@ export const guestbookService = {
             color: color,
             is_approved: false
           }
-        ])
+        ] as any)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
 
+      if (!data) {
+        console.error('No data returned from Supabase insert');
+        throw new Error('No data returned from insert');
+      }
+
+      console.log('Successfully added entry to Supabase:', data);
+
+      const entry = data as any;
       return {
-        id: data.id,
-        content: data.content,
-        category: data.category,
-        author: data.author,
-        createdAt: data.created_at,
-        color: data.color,
-        isApproved: data.is_approved
+        id: entry.id,
+        content: entry.content,
+        category: entry.category,
+        author: entry.author,
+        createdAt: entry.created_at,
+        color: entry.color,
+        isApproved: entry.is_approved
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding guestbook entry:', error);
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
       // Return the entry anyway (it just won't be saved)
       return newEntry;
     }
