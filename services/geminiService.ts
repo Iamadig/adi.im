@@ -1,4 +1,3 @@
-
 export const generateQuote = async (mood?: string): Promise<{ text: string; author: string }> => {
   try {
     const response = await fetch('/api/gemini/generate-quote', {
@@ -11,10 +10,19 @@ export const generateQuote = async (mood?: string): Promise<{ text: string; auth
       if (response.status === 429) {
         throw new Error('Rate limit exceeded. Please try again later.');
       }
-      throw new Error('Failed to generate quote');
+      const errorText = await response.text();
+      console.error('API Error Response:', errorText);
+      throw new Error(`Failed to generate quote: ${response.status}`);
     }
 
     const data = await response.json();
+
+    // Check if the response contains an error (even with 200 status)
+    if (data.error) {
+      console.error('API returned error:', data.error, data.details);
+      throw new Error(data.error);
+    }
+
     return { text: data.text, author: data.author };
   } catch (error) {
     console.error('Error generating quote:', error);

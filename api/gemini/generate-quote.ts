@@ -60,7 +60,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             contents: prompt,
         });
 
-        const result = response.text?.trim() || '';
+        // Try multiple ways to access the response text
+        let result = '';
+
+        // Method 1: Direct .text property
+        if (response.text) {
+            result = response.text.trim();
+        }
+        // Method 2: Through candidates array (fallback)
+        else if (response.candidates && response.candidates.length > 0) {
+            const candidate = response.candidates[0];
+            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                result = candidate.content.parts[0].text?.trim() || '';
+            }
+        }
+
+        if (!result) {
+            console.error('Gemini API returned empty response:', JSON.stringify(response, null, 2));
+            throw new Error('Empty response from Gemini API');
+        }
+
         const lastDashIndex = result.lastIndexOf(' - ');
 
         if (lastDashIndex !== -1) {
@@ -78,9 +97,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 author: 'Unknown'
             });
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Gemini API Error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         return res.status(500).json({
+            error: 'Failed to generate quote',
+            details: error.message,
             text: 'Every moment is a fresh beginning.',
             author: 'T.S. Eliot'
         });

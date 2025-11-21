@@ -51,11 +51,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             contents: `Rewrite the following text to be more professional, engaging, and concise, while maintaining a personal tone suitable for a personal website bio: "${text}"`,
         });
 
-        const polishedText = response.text || text;
+        // Try multiple ways to access the response text
+        let polishedText = '';
+
+        // Method 1: Direct .text property
+        if (response.text) {
+            polishedText = response.text;
+        }
+        // Method 2: Through candidates array (fallback)
+        else if (response.candidates && response.candidates.length > 0) {
+            const candidate = response.candidates[0];
+            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                polishedText = candidate.content.parts[0].text || '';
+            }
+        }
+
+        if (!polishedText) {
+            console.error('Gemini API returned empty response:', JSON.stringify(response, null, 2));
+            console.warn('Falling back to original text');
+            polishedText = text;
+        }
 
         return res.status(200).json({ text: polishedText });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Gemini API Error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         return res.status(500).json({ text }); // Return original text on error
     }
 }
