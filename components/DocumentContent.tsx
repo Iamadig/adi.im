@@ -144,26 +144,34 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
             }
             break;
           case SectionType.THOUGHTS:
-            const thoughtsData = await notionService.getThoughts();
-            if (isMounted) setThoughts(thoughtsData);
+            if (thoughts.length === 0) {
+              const thoughtsData = await notionService.getThoughts();
+              if (isMounted) setThoughts(thoughtsData);
+            }
             break;
           case SectionType.QUOTES:
-            const quotesData = await notionService.getQuotes();
-            if (isMounted) setQuotes(quotesData);
+            if (quotes.length === 0) {
+              const quotesData = await notionService.getQuotes();
+              if (isMounted) setQuotes(quotesData);
+            }
             break;
           case SectionType.CRAFTS:
-            const craftsData = await notionService.getCrafts();
-            if (isMounted) setCrafts(craftsData);
+            if (crafts.length === 0) {
+              const craftsData = await notionService.getCrafts();
+              if (isMounted) setCrafts(craftsData);
+            }
             break;
           case SectionType.RECOMMENDATIONS:
-            const [recs, entries] = await Promise.all([
-              notionService.getRecommendations(),
-              guestbookService.getEntries()
-            ]);
+            if (recommendations.length === 0) {
+              const [recs, entries] = await Promise.all([
+                notionService.getRecommendations(),
+                guestbookService.getEntries()
+              ]);
 
-            if (isMounted) {
-              setRecommendations(recs);
-              setGuestbookEntries(entries);
+              if (isMounted) {
+                setRecommendations(recs);
+                setGuestbookEntries(entries);
+              }
             }
             break;
         }

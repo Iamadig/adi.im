@@ -1,10 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Client } from '@notionhq/client';
+import { getFromCache, setCache } from '../utils/cache';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    // Set Cache-Control headers for Vercel CDN
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=3600');
 
     const apiKey = process.env.NOTION_KEY;
     const pageId = process.env.NOTION_ABOUT_PAGE;
@@ -20,6 +24,13 @@ Currently, I'm building the future of creative tools. Before that, I worked on d
 
 I enjoy photography, mechanical keyboards, and exploring the city.`
         });
+    }
+
+    // Check in-memory cache
+    const cacheKey = `about_${pageId}`;
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+        return res.status(200).json(cachedData);
     }
 
     try {
@@ -104,7 +115,10 @@ I enjoy photography, mechanical keyboards, and exploring the city.`
             html += currentListType === 'ul' ? '</ul>' : '</ol>';
         }
 
-        return res.status(200).json({ html });
+        const responseData = { html };
+        setCache(cacheKey, responseData);
+
+        return res.status(200).json(responseData);
     } catch (error) {
         console.error('Notion API Error:', error);
         return res.status(500).json({ error: 'Failed to fetch content from Notion' });

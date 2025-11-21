@@ -1,10 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Client } from '@notionhq/client';
+import { getFromCache, setCache } from '../utils/cache';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    // Set Cache-Control headers for Vercel CDN
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=3600');
 
     const apiKey = process.env.NOTION_KEY;
     const databaseId = process.env.NOTION_CRAFTS_DB;
@@ -16,6 +20,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 { id: '2', title: 'Design System', url: 'https://www.figma.com', domain: 'figma.com' },
             ]
         });
+    }
+
+    // Check in-memory cache
+    const cacheKey = `crafts_${databaseId}`;
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+        return res.status(200).json(cachedData);
     }
 
     try {
@@ -93,7 +104,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        return res.status(200).json({ crafts });
+        const responseData = { crafts };
+        setCache(cacheKey, responseData);
+
+        return res.status(200).json(responseData);
     } catch (error) {
         console.error('Notion API Error:', error);
         return res.status(500).json({ error: 'Failed to fetch crafts' });

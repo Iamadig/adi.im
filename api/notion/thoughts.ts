@@ -1,27 +1,44 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Client } from '@notionhq/client';
+import { getFromCache, setCache } from '../utils/cache';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Set Cache-Control headers for Vercel CDN
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=3600');
+
     const apiKey = process.env.NOTION_KEY;
     const databaseId = process.env.NOTION_THOUGHTS_DB;
 
     if (!apiKey || !databaseId) {
-        // Return mock data if not configured
         return res.status(200).json({
             thoughts: [
                 {
-                    id: '101',
-                    title: 'On Craft',
-                    date: 'Oct 12, 2023',
-                    content: 'Craft is the difference between "good enough" and "magical". It\'s the invisible details—the spring physics of a button, the easing of a transition, the micro-copy that makes you smile. In a world of standardized components, craft is our rebellion.',
-                    tags: ['Design', 'Philosophy']
+                    id: '1',
+                    title: 'The Future of Interfaces',
+                    date: '2024-03-15',
+                    tags: ['Design', 'AI'],
+                    content: 'Interfaces are becoming more fluid...'
+                },
+                {
+                    id: '2',
+                    title: 'Crafting Software',
+                    date: '2024-02-20',
+                    tags: ['Engineering'],
+                    content: 'Software is a craft, not just engineering...'
                 }
             ]
         });
+    }
+
+    // Check in-memory cache
+    const cacheKey = `thoughts_${databaseId} `;
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+        return res.status(200).json(cachedData);
     }
 
     try {
@@ -29,41 +46,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const response = await notion.databases.query({
             database_id: databaseId,
-            sorts: [{ property: 'Date', direction: 'descending' }],
+            sorts: [
+                {
+                    property: 'Date',
+                    direction: 'descending',
+                },
+            ],
         });
 
-        const thoughts = response.results.map((page: any) => {
+        const thoughts = await Promise.all(response.results.map(async (page: any) => {
             const props = page.properties;
 
-            // Extract title
-            const title = props.Title?.title?.[0]?.plain_text || props.Name?.title?.[0]?.plain_text || 'Untitled';
+            // Fetch page content
+            const blocks = await notion.blocks.children.list({
+                block_id: page.id,
+                page_size: 100,
+            });
 
-            // Extract date
-            const dateObj = props.Date?.date;
-            const date = dateObj ? new Date(dateObj.start).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            }) : '';
-
-            // Extract content
-            const content = props.Content?.rich_text?.[0]?.plain_text || '';
-
-            // Extract tags
-            const tags = props.Tags?.multi_select?.map((tag: any) => tag.name) || [];
+            let content = '';
+            for (const block of blocks.results) {
+                if ('type' in block && block.type === 'paragraph' && 'paragraph' in block) {
+                    content += block.paragraph.rich_text.map((rt: any) => rt.plain_text).join('') + '\n\n';
+                }
+            }
 
             return {
                 id: page.id,
-                title,
-                date,
-                content,
-                tags
+                title: props.Name?.title?.[0]?.plain_text || 'Untitled',
+                date: props.Date?.date?.start || new Date().toISOString().split('T')[0],
+                tags: props.Tags?.multi_select?.map((tag: any) => tag.name) || [],
+                content: content.trim()
             };
-        });
+        }));
 
-        return res.status(200).json({ thoughts });
+        const responseData = { thoughts };
+        setCache(cacheKey, responseData);
+
+        return res.status(200).json(responseData);
     } catch (error) {
         console.error('Notion API Error:', error);
-        return res.status(500).json({ error: 'Failed to fetch thoughts from Notion' });
+        return res.status(500).json({ error: 'Failed to fetch thoughts' });
     }
 }
