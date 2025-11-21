@@ -44,36 +44,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             page_size: 100,
         });
 
-        const recommendations: any[] = [];
-        let currentSection: any = null;
+        const recommendations: { id: string; title: string; items: string[] }[] = [];
 
         for (const block of response.results) {
             if ('type' in block) {
-                // Headings create new sections
-                if (block.type === 'heading_2' && 'heading_2' in block) {
-                    if (currentSection) {
-                        recommendations.push(currentSection);
+                if (block.type === 'toggle' && 'toggle' in block) {
+                    const title = block.toggle.rich_text.map((rt: any) => rt.plain_text).join('');
+                    const id = title.toLowerCase().replace(/\s+/g, '-');
+
+                    const currentSection = { id, title, items: [] as string[] };
+
+                    // Fetch children of the toggle
+                    const children = await notion.blocks.children.list({
+                        block_id: block.id,
+                        page_size: 100
+                    });
+
+                    for (const child of children.results) {
+                        if ('type' in child) {
+                            let item = '';
+                            if (child.type === 'bulleted_list_item' && 'bulleted_list_item' in child) {
+                                item = richTextToHtml(child.bulleted_list_item.rich_text);
+                            } else if (child.type === 'paragraph' && 'paragraph' in child) {
+                                item = richTextToHtml(child.paragraph.rich_text);
+                            }
+
+                            if (item) {
+                                currentSection.items.push(item);
+                            }
+                        }
                     }
-                    const title = block.heading_2.rich_text.map((rt: any) => rt.plain_text).join('');
-                    currentSection = {
-                        id: title.toLowerCase().replace(/\s+/g, '-'),
-                        title,
-                        items: []
-                    };
-                }
-                // Bulleted list items add to current section
-                else if (block.type === 'bulleted_list_item' && 'bulleted_list_item' in block && currentSection) {
-                    const item = block.bulleted_list_item.rich_text.map((rt: any) => rt.plain_text).join('');
-                    if (item) {
-                        currentSection.items.push(item);
-                    }
+                    recommendations.push(currentSection);
                 }
             }
-        }
-
-        // Push the last section
-        if (currentSection) {
-            recommendations.push(currentSection);
         }
 
         return res.status(200).json({ recommendations });
@@ -81,4 +84,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error('Notion API Error:', error);
         return res.status(500).json({ error: 'Failed to fetch recommendations from Notion' });
     }
+}
+
+function richTextToHtml(richText: any[], options: { skipLinks?: boolean } = {}): string {
+    if (!richText || richText.length === 0) return '';
+
+    return richText.map((rt) => {
+        let text = rt.plain_text;
+
+        // Escape HTML characters
+        text = text.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        const { annotations } = rt;
+        if (annotations.bold) text = `<b>${text}</b>`;
+        if (annotations.italic) text = `<i>${text}</i>`;
+        if (annotations.strikethrough) text = `<s>${text}</s>`;
+        if (annotations.underline) text = `<u>${text}</u>`;
+        if (annotations.code) text = `<code>${text}</code>`;
+
+        if (rt.href && !options.skipLinks) {
+            text = `<a href="${rt.href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+
+        return text;
+    }).join('');
 }

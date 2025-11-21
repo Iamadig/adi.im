@@ -10,12 +10,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const databaseId = process.env.NOTION_CRAFTS_DB;
 
     if (!apiKey || !databaseId) {
-        // Return mock data if not configured
         return res.status(200).json({
             crafts: [
-                { id: '1', title: "Rauno Freiberg", url: "https://rauno.me", domain: "rauno.me" },
-                { id: '2', title: "Paco Coursey", url: "https://paco.me", domain: "paco.me" },
-                { id: '3', title: "Emil Kowalski", url: "https://emilkowal.ski", domain: "emilkowal.ski" }
+                { id: '1', title: 'Personal Website', url: 'https://github.com/adi/personal-site', domain: 'github.com' },
+                { id: '2', title: 'Design System', url: 'https://www.figma.com', domain: 'figma.com' },
             ]
         });
     }
@@ -23,41 +21,109 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const notion = new Client({ auth: apiKey });
 
-        const response = await notion.databases.query({
-            database_id: databaseId,
+        // Fetch blocks from the page
+        const response = await notion.blocks.children.list({
+            block_id: databaseId,
+            page_size: 100,
         });
 
-        const crafts = response.results.map((page: any) => {
-            const props = page.properties;
+        const crafts: { id: string; title: string; url: string; domain: string }[] = [];
 
-            // Extract title
-            const title = props.Title?.title?.[0]?.plain_text ||
-                props.Name?.title?.[0]?.plain_text || 'Untitled';
+        for (const block of response.results) {
+            if (!('type' in block)) continue;
 
-            // Extract URL
-            const url = props.URL?.url || props.Link?.url || '';
+            let title = '';
+            let url = '';
 
-            // Extract or derive domain
-            let domain = props.Domain?.rich_text?.[0]?.plain_text || '';
-            if (!domain && url) {
-                try {
-                    domain = new URL(url).hostname.replace('www.', '');
-                } catch (e) {
-                    domain = url;
+            if (block.type === 'paragraph' && 'paragraph' in block) {
+                const richText = block.paragraph.rich_text;
+                if (richText.length > 0) {
+                    // Use richTextToHtml but skip links for the title itself
+                    title = richTextToHtml(richText, { skipLinks: true });
+
+                    const link = richText.find((rt: any) => rt.href !== null);
+                    if (link && link.href) {
+                        url = link.href;
+                    }
+                }
+            } else if (block.type === 'bulleted_list_item' && 'bulleted_list_item' in block) {
+                const richText = block.bulleted_list_item.rich_text;
+                if (richText.length > 0) {
+                    title = richTextToHtml(richText, { skipLinks: true });
+
+                    const link = richText.find((rt: any) => rt.href !== null);
+                    if (link && link.href) {
+                        url = link.href;
+                    } else {
+                        // Fallback: Check if the text itself is a URL
+                        const text = richText.map((rt: any) => rt.plain_text).join('').trim();
+                        if (text.startsWith('http')) {
+                            url = text;
+                        }
+                    }
+                }
+            } else if (block.type === 'bookmark' && 'bookmark' in block) {
+                url = block.bookmark.url;
+                const caption = block.bookmark.caption;
+                if (caption && caption.length > 0) {
+                    title = richTextToHtml(caption, { skipLinks: true });
+                } else {
+                    title = url;
                 }
             }
 
-            return {
-                id: page.id,
-                title,
-                url,
-                domain
-            };
-        });
+            if (title) {
+                // Extract domain
+                let domain = '';
+                try {
+                    if (url) {
+                        const urlObj = new URL(url);
+                        domain = urlObj.hostname.replace('www.', '');
+                    }
+                } catch (e) {
+                    // Invalid URL, ignore
+                }
+
+                crafts.push({
+                    id: block.id,
+                    title,
+                    url,
+                    domain
+                });
+            }
+        }
 
         return res.status(200).json({ crafts });
     } catch (error) {
         console.error('Notion API Error:', error);
-        return res.status(500).json({ error: 'Failed to fetch crafts from Notion' });
+        return res.status(500).json({ error: 'Failed to fetch crafts' });
     }
+}
+
+function richTextToHtml(richText: any[], options: { skipLinks?: boolean } = {}): string {
+    if (!richText || richText.length === 0) return '';
+
+    return richText.map((rt) => {
+        let text = rt.plain_text;
+
+        // Escape HTML characters
+        text = text.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        const { annotations } = rt;
+        if (annotations.bold) text = `<b>${text}</b>`;
+        if (annotations.italic) text = `<i>${text}</i>`;
+        if (annotations.strikethrough) text = `<s>${text}</s>`;
+        if (annotations.underline) text = `<u>${text}</u>`;
+        if (annotations.code) text = `<code>${text}</code>`;
+
+        if (rt.href && !options.skipLinks) {
+            text = `<a href="${rt.href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+
+        return text;
+    }).join('');
 }

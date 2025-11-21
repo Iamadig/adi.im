@@ -10,7 +10,7 @@ export const notionService = {
       const response = await fetch('/api/notion/about');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-      return data.text || ABOUT_ME_TEXT;
+      return data.html || data.text || ABOUT_ME_TEXT;
     } catch (error) {
       console.error('Error fetching About Me:', error);
       return ABOUT_ME_TEXT;

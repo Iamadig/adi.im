@@ -31,35 +31,110 @@ I enjoy photography, mechanical keyboards, and exploring the city.`
             page_size: 100,
         });
 
-        // Extract text from blocks
-        let text = '';
+        let html = '';
+        let currentListType: 'ul' | 'ol' | null = null;
+
         for (const block of response.results) {
-            if ('type' in block) {
-                if (block.type === 'paragraph' && 'paragraph' in block) {
-                    const richText = block.paragraph.rich_text;
-                    const paragraphText = richText.map((rt: any) => rt.plain_text).join('');
-                    if (paragraphText) {
-                        text += paragraphText + '\n\n';
-                    }
-                } else if (block.type === 'heading_1' && 'heading_1' in block) {
-                    const richText = block.heading_1.rich_text;
-                    const headingText = richText.map((rt: any) => rt.plain_text).join('');
-                    if (headingText) {
-                        text += headingText + '\n\n';
-                    }
-                } else if (block.type === 'heading_2' && 'heading_2' in block) {
-                    const richText = block.heading_2.rich_text;
-                    const headingText = richText.map((rt: any) => rt.plain_text).join('');
-                    if (headingText) {
-                        text += headingText + '\n\n';
-                    }
+            if (!('type' in block)) continue;
+
+            const blockType = block.type;
+
+            // Handle List Closing
+            if (currentListType && blockType !== 'bulleted_list_item' && blockType !== 'numbered_list_item') {
+                html += currentListType === 'ul' ? '</ul>' : '</ol>';
+                currentListType = null;
+            }
+
+            // Handle List Opening
+            if (!currentListType) {
+                if (blockType === 'bulleted_list_item') {
+                    currentListType = 'ul';
+                    html += '<ul>';
+                } else if (blockType === 'numbered_list_item') {
+                    currentListType = 'ol';
+                    html += '<ol>';
                 }
+            } else {
+                // Switch list type if needed
+                if (currentListType === 'ul' && blockType === 'numbered_list_item') {
+                    html += '</ul><ol>';
+                    currentListType = 'ol';
+                } else if (currentListType === 'ol' && blockType === 'bulleted_list_item') {
+                    html += '</ol><ul>';
+                    currentListType = 'ul';
+                }
+            }
+
+            if (blockType === 'paragraph' && 'paragraph' in block) {
+                const content = richTextToHtml(block.paragraph.rich_text);
+                if (content) html += `<p>${content}</p>`;
+                else html += '<p><br/></p>'; // Empty paragraph
+            }
+            else if (blockType === 'heading_1' && 'heading_1' in block) {
+                const content = richTextToHtml(block.heading_1.rich_text);
+                if (content) html += `<h1>${content}</h1>`;
+            }
+            else if (blockType === 'heading_2' && 'heading_2' in block) {
+                const content = richTextToHtml(block.heading_2.rich_text);
+                if (content) html += `<h2>${content}</h2>`;
+            }
+            else if (blockType === 'heading_3' && 'heading_3' in block) {
+                const content = richTextToHtml(block.heading_3.rich_text);
+                if (content) html += `<h3>${content}</h3>`;
+            }
+            else if (blockType === 'bulleted_list_item' && 'bulleted_list_item' in block) {
+                const content = richTextToHtml(block.bulleted_list_item.rich_text);
+                html += `<li>${content}</li>`;
+            }
+            else if (blockType === 'numbered_list_item' && 'numbered_list_item' in block) {
+                const content = richTextToHtml(block.numbered_list_item.rich_text);
+                html += `<li>${content}</li>`;
+            }
+            else if (blockType === 'quote' && 'quote' in block) {
+                const content = richTextToHtml(block.quote.rich_text);
+                if (content) html += `<blockquote>${content}</blockquote>`;
+            }
+            else if (blockType === 'divider') {
+                html += '<hr />';
             }
         }
 
-        return res.status(200).json({ text: text.trim() });
+        // Close any open list
+        if (currentListType) {
+            html += currentListType === 'ul' ? '</ul>' : '</ol>';
+        }
+
+        return res.status(200).json({ html });
     } catch (error) {
         console.error('Notion API Error:', error);
         return res.status(500).json({ error: 'Failed to fetch content from Notion' });
     }
+}
+
+function richTextToHtml(richText: any[], options: { skipLinks?: boolean } = {}): string {
+    if (!richText || richText.length === 0) return '';
+
+    return richText.map((rt) => {
+        let text = rt.plain_text;
+
+        // Escape HTML characters
+        text = text.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        const { annotations } = rt;
+        if (annotations.bold) text = `<b>${text}</b>`;
+        if (annotations.italic) text = `<i>${text}</i>`;
+        if (annotations.strikethrough) text = `<s>${text}</s>`;
+        if (annotations.underline) text = `<u>${text}</u>`;
+        if (annotations.code) text = `<code>${text}</code>`;
+
+        if (rt.href && !options.skipLinks) {
+            text = `<a href="${rt.href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+
+        return text;
+    }).join('');
 }
