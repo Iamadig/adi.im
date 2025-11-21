@@ -96,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             return {
                 id: page.id,
-                title: props.Name?.title?.[0]?.plain_text || 'Untitled',
+                title: props.Title?.title?.[0]?.plain_text || props.Name?.title?.[0]?.plain_text || 'Untitled',
                 date: props.Date?.date?.start || new Date().toISOString().split('T')[0],
                 tags: props.Tags?.multi_select?.map((tag: any) => tag.name) || [],
                 description: description,
