@@ -6,8 +6,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const apiKey = process.env.VITE_NOTION_KEY;
-    const databaseId = process.env.VITE_NOTION_THOUGHTS_DB;
+    const apiKey = process.env.NOTION_KEY;
+    const databaseId = process.env.NOTION_THOUGHTS_DB;
 
     if (!apiKey || !databaseId) {
         // Return mock data if not configured

@@ -6,8 +6,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const apiKey = process.env.VITE_NOTION_KEY;
-    const pageId = process.env.VITE_NOTION_ABOUT_PAGE;
+    const apiKey = process.env.NOTION_KEY;
+    const pageId = process.env.NOTION_ABOUT_PAGE;
 
     if (!apiKey || !pageId) {
         // Return default text if not configured
