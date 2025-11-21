@@ -156,11 +156,15 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
             if (isMounted) setCrafts(craftsData);
             break;
           case SectionType.RECOMMENDATIONS:
-            const recs = await notionService.getRecommendations();
-            if (isMounted) setRecommendations(recs);
+            const [recs, entries] = await Promise.all([
+              notionService.getRecommendations(),
+              guestbookService.getEntries()
+            ]);
 
-            const entries = await guestbookService.getEntries();
-            if (isMounted) setGuestbookEntries(entries);
+            if (isMounted) {
+              setRecommendations(recs);
+              setGuestbookEntries(entries);
+            }
             break;
         }
       } catch (error) {

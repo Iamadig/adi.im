@@ -44,40 +44,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             page_size: 100,
         });
 
+        // First, collect all toggle blocks
+        const toggleBlocks = response.results.filter(
+            (block): block is any =>
+                'type' in block && block.type === 'toggle' && 'toggle' in block
+        );
+
+        // Fetch all toggle children in parallel for better performance
+        const childrenPromises = toggleBlocks.map(block =>
+            notion.blocks.children.list({
+                block_id: block.id,
+                page_size: 100
+            })
+        );
+
+        const childrenResults = await Promise.all(childrenPromises);
+
+        // Build recommendations from the results
         const recommendations: { id: string; title: string; items: string[] }[] = [];
 
-        for (const block of response.results) {
-            if ('type' in block) {
-                if (block.type === 'toggle' && 'toggle' in block) {
-                    const title = block.toggle.rich_text.map((rt: any) => rt.plain_text).join('');
-                    const id = title.toLowerCase().replace(/\s+/g, '-');
+        toggleBlocks.forEach((block, index) => {
+            const title = block.toggle.rich_text.map((rt: any) => rt.plain_text).join('');
+            const id = title.toLowerCase().replace(/\s+/g, '-');
 
-                    const currentSection = { id, title, items: [] as string[] };
+            const currentSection = { id, title, items: [] as string[] };
+            const children = childrenResults[index];
 
-                    // Fetch children of the toggle
-                    const children = await notion.blocks.children.list({
-                        block_id: block.id,
-                        page_size: 100
-                    });
-
-                    for (const child of children.results) {
-                        if ('type' in child) {
-                            let item = '';
-                            if (child.type === 'bulleted_list_item' && 'bulleted_list_item' in child) {
-                                item = richTextToHtml(child.bulleted_list_item.rich_text);
-                            } else if (child.type === 'paragraph' && 'paragraph' in child) {
-                                item = richTextToHtml(child.paragraph.rich_text);
-                            }
-
-                            if (item) {
-                                currentSection.items.push(item);
-                            }
-                        }
+            for (const child of children.results) {
+                if ('type' in child) {
+                    let item = '';
+                    if (child.type === 'bulleted_list_item' && 'bulleted_list_item' in child) {
+                        item = richTextToHtml(child.bulleted_list_item.rich_text);
+                    } else if (child.type === 'paragraph' && 'paragraph' in child) {
+                        item = richTextToHtml(child.paragraph.rich_text);
                     }
-                    recommendations.push(currentSection);
+
+                    if (item) {
+                        currentSection.items.push(item);
+                    }
                 }
             }
-        }
+            recommendations.push(currentSection);
+        });
 
         return res.status(200).json({ recommendations });
     } catch (error) {
