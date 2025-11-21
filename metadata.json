@@ -1,0 +1,5 @@
+{
+  "name": "Docs Folio",
+  "description": "A personal website designed with a Google Docs interface, featuring sections like About Me, Thoughts, and Recommendations, with AI-powered content generation.",
+  "requestFramePermissions": []
+}
