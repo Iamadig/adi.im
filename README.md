@@ -42,11 +42,33 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### 3. Run Locally
 
+**Option A: With Mock Data (Quick Start)**
 ```bash
 npm run dev
 ```
+Visit `http://localhost:3000`
 
-Visit `http://localhost:5173`
+> [!NOTE]
+> This runs the Vite dev server only. API routes (`/api/*`) won't work, so the app uses **mock data**. Perfect for UI development.
+
+**Option B: With Real APIs (Full Features)**
+```bash
+# First time: Install Vercel CLI globally
+npm i -g vercel
+
+# Run with Vercel dev server
+vercel dev
+```
+
+> [!IMPORTANT]
+> Use `vercel dev` to test Notion/Supabase/Gemini integrations locally. This runs both Vite AND the serverless functions.
+
+The first time you run `vercel dev`, it will ask you to:
+1. Login to Vercel (or create free account)
+2. Link to a project (create new one or skip)
+3. Copy your `.env.local` settings
+
+After setup, it will start at `http://localhost:3000` with full API functionality.
 
 ## Deployment
 
@@ -109,6 +131,36 @@ CREATE POLICY "Anyone can insert entries"
 ├── types.ts               # TypeScript types
 └── constants.ts           # Configuration
 ```
+
+## Troubleshooting
+
+### "API routes not working locally"
+
+**Problem**: Running `npm run dev` but content isn't loading from Notion/Supabase.
+
+**Solution**: The `/api` serverless functions only work with `vercel dev`, not regular Vite dev server.
+
+```bash
+# Stop npm run dev (Ctrl+C)
+# Use vercel dev instead
+vercel dev
+```
+
+### "Mock data showing instead of real content"
+
+This is normal with `npm run dev`. Either:
+- Use `vercel dev` for real API calls, OR
+- Deploy to Vercel and test in production
+
+### "vercel dev asking for login"
+
+First time setup:
+1. Create free account at https://vercel.com
+2. Run `vercel login`
+3. Follow the browser authentication
+4. Run `vercel dev` again
+
+---
 
 ## Tech Stack
 
