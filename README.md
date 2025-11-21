@@ -21,28 +21,40 @@ npm install
 
 ### 2. Setup Environment Variables
 
-Create `.env.local` in the project root (copy from `.env.local.example`):
+Create `.env.local` in the project root:
 
 ```env
-# Required for AI features
-VITE_GEMINI_API_KEY=your_gemini_api_key
+# Server-side variables (used by API routes) - NO VITE_ prefix
+NOTION_KEY=your_notion_integration_token
+NOTION_ABOUT_PAGE=your_about_page_id
+NOTION_THOUGHTS_DB=your_thoughts_database_id
+NOTION_QUOTES_DB=your_quotes_database_id
+NOTION_CRAFTS_DB=your_crafts_database_id
+NOTION_RECS_PAGE=your_recommendations_page_id
+GEMINI_API_KEY=your_gemini_api_key
 
-# Required for CMS content (or use mock data)
-VITE_NOTION_KEY=your_notion_integration_token
-VITE_NOTION_ABOUT_PAGE=your_about_page_id
-VITE_NOTION_THOUGHTS_DB=your_thoughts_database_id
-VITE_NOTION_QUOTES_DB=your_quotes_database_id
-VITE_NOTION_CRAFTS_DB=your_crafts_database_id
-VITE_NOTION_RECS_PAGE=your_recommendations_page_id
-
-# Required for guestbook (or stores in localStorage)
+# Client-side variables (used by React) - MUST have VITE_ prefix
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
+
+> **Important**: Server-side variables (for API routes) should NOT have the `VITE_` prefix. Only client-side variables need the `VITE_` prefix.
 
 ### 3. Run Locally
 
-**Option A: With Mock Data (Quick Start)**
+**Option A: Full Local Development (Recommended)**
+```bash
+npm run dev:full
+```
+This runs both the Vite frontend and a local Express server for API routes.
+- Frontend: `http://localhost:3000`
+- API Server: `http://localhost:3001`
+
+> [!NOTE]
+> Make sure your `.env.local` file has all the required environment variables (see step 2).
+
+**Option B: Frontend Only (Mock Data)**
 ```bash
 npm run dev
 ```
@@ -51,7 +63,7 @@ Visit `http://localhost:3000`
 > [!NOTE]
 > This runs the Vite dev server only. API routes (`/api/*`) won't work, so the app uses **mock data**. Perfect for UI development.
 
-**Option B: With Real APIs (Full Features)**
+**Option C: Using Vercel CLI**
 ```bash
 # First time: Install Vercel CLI globally
 npm i -g vercel
@@ -60,15 +72,8 @@ npm i -g vercel
 vercel dev
 ```
 
-> [!IMPORTANT]
-> Use `vercel dev` to test Notion/Supabase/Gemini integrations locally. This runs both Vite AND the serverless functions.
-
-The first time you run `vercel dev`, it will ask you to:
-1. Login to Vercel (or create free account)
-2. Link to a project (create new one or skip)
-3. Copy your `.env.local` settings
-
-After setup, it will start at `http://localhost:3000` with full API functionality.
+> [!NOTE]
+> This is an alternative to Option A. The first time you run `vercel dev`, it will ask you to login and link your project.
 
 ## Deployment
 
@@ -138,13 +143,21 @@ CREATE POLICY "Anyone can insert entries"
 
 **Problem**: Running `npm run dev` but content isn't loading from Notion/Supabase.
 
-**Solution**: The `/api` serverless functions only work with `vercel dev`, not regular Vite dev server.
+**Solution**: Use `npm run dev:full` to run both the frontend and API server, or use `vercel dev`.
 
 ```bash
-# Stop npm run dev (Ctrl+C)
-# Use vercel dev instead
+# Option 1: Use the local Express server (recommended)
+npm run dev:full
+
+# Option 2: Use Vercel CLI
 vercel dev
 ```
+
+**Note**: Make sure your `.env.local` file has the server-side environment variables (without `VITE_` prefix):
+- `NOTION_KEY`
+- `NOTION_ABOUT_PAGE`
+- `NOTION_THOUGHTS_DB`
+- etc.
 
 ### "Mock data showing instead of real content"
 
