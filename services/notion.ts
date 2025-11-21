@@ -1,54 +1,72 @@
 
-import { NOTION_CONFIG, ABOUT_ME_TEXT, INITIAL_THOUGHTS, INITIAL_QUOTES, INITIAL_CRAFTS, RECOMMENDATION_SECTIONS } from '../constants';
+import { ABOUT_ME_TEXT, INITIAL_THOUGHTS, INITIAL_QUOTES, INITIAL_CRAFTS, RECOMMENDATION_SECTIONS } from '../constants';
 import { Thought, Quote, Craft, RecommendationSection } from '../types';
 
-// Helper to simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const notionService = {
-  
+
   // 1. ABOUT ME
   async getAboutMe(): Promise<string> {
-    if (!NOTION_CONFIG.API_KEY || !NOTION_CONFIG.PAGE_IDS.ABOUT) {
-      await delay(600);
+    try {
+      const response = await fetch('/api/notion/about');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      return data.text || ABOUT_ME_TEXT;
+    } catch (error) {
+      console.error('Error fetching About Me:', error);
       return ABOUT_ME_TEXT;
     }
-    return ABOUT_ME_TEXT;
   },
 
   // 2. THOUGHTS
   async getThoughts(): Promise<Thought[]> {
-    if (!NOTION_CONFIG.API_KEY || !NOTION_CONFIG.DATABASE_IDS.THOUGHTS) {
-      await delay(800);
+    try {
+      const response = await fetch('/api/notion/thoughts');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      return data.thoughts || INITIAL_THOUGHTS;
+    } catch (error) {
+      console.error('Error fetching Thoughts:', error);
       return INITIAL_THOUGHTS;
     }
-    return INITIAL_THOUGHTS;
   },
 
   // 3. QUOTES
   async getQuotes(): Promise<Quote[]> {
-    if (!NOTION_CONFIG.API_KEY || !NOTION_CONFIG.DATABASE_IDS.QUOTES) {
-      await delay(500);
+    try {
+      const response = await fetch('/api/notion/quotes');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      return data.quotes || INITIAL_QUOTES;
+    } catch (error) {
+      console.error('Error fetching Quotes:', error);
       return INITIAL_QUOTES;
     }
-    return INITIAL_QUOTES;
   },
 
   // 4. CRAFTS
   async getCrafts(): Promise<Craft[]> {
-    if (!NOTION_CONFIG.API_KEY || !NOTION_CONFIG.DATABASE_IDS.CRAFTS) {
-      await delay(400);
+    try {
+      const response = await fetch('/api/notion/crafts');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      return data.crafts || INITIAL_CRAFTS;
+    } catch (error) {
+      console.error('Error fetching Crafts:', error);
       return INITIAL_CRAFTS;
     }
-    return INITIAL_CRAFTS;
   },
 
   // 5. RECOMMENDATIONS
   async getRecommendations(): Promise<RecommendationSection[]> {
-    if (!NOTION_CONFIG.API_KEY || !NOTION_CONFIG.PAGE_IDS.RECOMMENDATIONS) {
-      await delay(700);
+    try {
+      const response = await fetch('/api/notion/recommendations');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      return data.recommendations || RECOMMENDATION_SECTIONS;
+    } catch (error) {
+      console.error('Error fetching Recommendations:', error);
       return RECOMMENDATION_SECTIONS;
     }
-    return RECOMMENDATION_SECTIONS;
   }
 };
+

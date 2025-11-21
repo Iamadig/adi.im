@@ -4,15 +4,15 @@ import { User, MessageSquare, Quote as QuoteIcon, Palette, Star } from 'lucide-r
 
 // --- NOTION CONFIGURATION ---
 export const NOTION_CONFIG = {
-  API_KEY: process.env.REACT_APP_NOTION_KEY || '', 
+  API_KEY: import.meta.env.VITE_NOTION_KEY || '', 
   DATABASE_IDS: {
-    THOUGHTS: process.env.REACT_APP_NOTION_THOUGHTS_DB || '',
-    QUOTES: process.env.REACT_APP_NOTION_QUOTES_DB || '',
-    CRAFTS: process.env.REACT_APP_NOTION_CRAFTS_DB || '',
+    THOUGHTS: import.meta.env.VITE_NOTION_THOUGHTS_DB || '',
+    QUOTES: import.meta.env.VITE_NOTION_QUOTES_DB || '',
+    CRAFTS: import.meta.env.VITE_NOTION_CRAFTS_DB || '',
   },
   PAGE_IDS: {
-    ABOUT: process.env.REACT_APP_NOTION_ABOUT_PAGE || '',
-    RECOMMENDATIONS: process.env.REACT_APP_NOTION_RECS_PAGE || '',
+    ABOUT: import.meta.env.VITE_NOTION_ABOUT_PAGE || '',
+    RECOMMENDATIONS: import.meta.env.VITE_NOTION_RECS_PAGE || '',
   }
 };
 
