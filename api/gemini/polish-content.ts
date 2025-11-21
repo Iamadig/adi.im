@@ -47,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const ai = new GoogleGenAI({ apiKey });
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.5-flash-lite',
             contents: `Rewrite the following text to be more professional, engaging, and concise, while maintaining a personal tone suitable for a personal website bio: "${text}"`,
         });
 
