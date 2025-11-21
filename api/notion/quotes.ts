@@ -1,14 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Client } from '@notionhq/client';
-import { getFromCache, setCache } from '../utils/cache';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
-
-    // Set Cache-Control headers for Vercel CDN
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=3600');
 
     const apiKey = process.env.NOTION_KEY;
     const databaseId = process.env.NOTION_QUOTES_DB;
@@ -20,13 +16,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 { id: '2', text: 'Design is not just what it looks like and feels like. Design is how it works.', author: 'Steve Jobs' }
             ]
         });
-    }
-
-    // Check in-memory cache
-    const cacheKey = `quotes_${databaseId}`;
-    const cachedData = getFromCache(cacheKey);
-    if (cachedData) {
-        return res.status(200).json(cachedData);
     }
 
     try {
@@ -80,10 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        const responseData = { quotes };
-        setCache(cacheKey, responseData);
-
-        return res.status(200).json(responseData);
+        return res.status(200).json({ quotes });
     } catch (error) {
         console.error('Notion API Error:', error);
         return res.status(500).json({ error: 'Failed to fetch quotes' });
