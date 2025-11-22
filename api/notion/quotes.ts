@@ -21,51 +21,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const notion = new Client({ auth: apiKey });
 
-        // Fetch blocks from the page
-        const response = await notion.blocks.children.list({
-            block_id: databaseId,
+        // Query the database (not fetch blocks)
+        const response = await notion.databases.query({
+            database_id: databaseId,
             page_size: 100,
         });
 
         const quotes: { id: string; text: string; author: string }[] = [];
 
-        for (const block of response.results) {
-            if (!('type' in block)) continue;
+        for (const page of response.results) {
+            if (!('properties' in page)) continue;
 
-            if (block.type === 'quote' && 'quote' in block) {
-                const richText = block.quote.rich_text;
-                if (richText.length > 0) {
-                    const text = richText.map((rt: any) => rt.plain_text).join('');
+            const properties = page.properties as any;
 
-                    // Try to extract author from the text (e.g. "Quote" - Author)
-                    let quoteText = text;
-                    let author = 'Unknown';
+            // Extract quote text from title property
+            let quoteText = '';
+            if (properties.Quote?.title) {
+                quoteText = properties.Quote.title
+                    .map((rt: any) => rt.plain_text)
+                    .join('');
+            }
 
-                    if (text.includes('—')) {
-                        const parts = text.split('—');
-                        quoteText = parts[0].trim();
-                        author = parts[1].trim();
-                    } else if (text.includes('-')) {
-                        const parts = text.split('-');
-                        // Check if the last part looks like an author (short, no quotes)
-                        if (parts.length > 1) {
-                            const lastPart = parts[parts.length - 1].trim();
-                            if (lastPart.length < 30) {
-                                author = lastPart;
-                                quoteText = parts.slice(0, -1).join('-').trim();
-                            }
-                        }
-                    }
+            // Extract author from rich_text property
+            let author = 'Unknown';
+            if (properties.Author?.rich_text) {
+                author = properties.Author.rich_text
+                    .map((rt: any) => rt.plain_text)
+                    .join('');
+            }
 
-                    // Remove surrounding quotes if present
-                    quoteText = quoteText.replace(/^["']|["']$/g, '');
-
-                    quotes.push({
-                        id: block.id,
-                        text: quoteText,
-                        author
-                    });
-                }
+            if (quoteText) {
+                quotes.push({
+                    id: page.id,
+                    text: quoteText,
+                    author: author || 'Unknown'
+                });
             }
         }
 
