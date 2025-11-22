@@ -24,7 +24,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
   const [selectedThought, setSelectedThought] = useState<Thought | null>(null);
   const [thoughtHtml, setThoughtHtml] = useState('');
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [crafts, setCrafts] = useState<Craft[]>([]);
+  const [craftsHtml, setCraftsHtml] = useState('');
 
   // Guestbook States
   const [guestbookEntries, setGuestbookEntries] = useState<GuestbookEntry[]>([]);
@@ -106,7 +106,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
       } else if (activeSection === SectionType.QUOTES) {
         text = quotes.map(q => q.text + " " + q.author).join(" ");
       } else if (activeSection === SectionType.CRAFTS) {
-        text = crafts.map(c => c.title).join(" ");
+        text = stripHtml(craftsHtml);
       } else if (activeSection === SectionType.RECOMMENDATIONS) {
         text = recommendations.flatMap(r => [r.title, ...r.items]).join(" ");
         text += " " + guestbookEntries.map(g => g.content).join(" ");
@@ -114,7 +114,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
       return text.trim().split(/\s+/).filter(w => w.length > 0).length;
     };
     setCurrentWordCount(calculateWords());
-  }, [activeSection, aboutHtml, thoughts, selectedThought, thoughtHtml, quotes, crafts, recommendations, guestbookEntries, stripHtml]);
+  }, [activeSection, aboutHtml, thoughts, selectedThought, thoughtHtml, quotes, craftsHtml, recommendations, guestbookEntries, stripHtml]);
 
 
   // --- DATA FETCHING ---
@@ -156,9 +156,9 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
             }
             break;
           case SectionType.CRAFTS:
-            if (crafts.length === 0) {
-              const craftsData = await notionService.getCrafts();
-              if (isMounted) setCrafts(craftsData);
+            if (!craftsHtml) {
+              const html = await notionService.getCrafts();
+              if (isMounted) setCraftsHtml(html);
             }
             break;
           case SectionType.RECOMMENDATIONS:
@@ -454,17 +454,10 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
         return (
           <div className="space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-black border-b pb-2 border-gray-200">Crafts</h1>
-            <ul className="space-y-1">
-              {crafts.map((craft) => (
-                <li key={craft.id} className="flex items-baseline gap-2 p-2 hover:bg-blue-50 rounded transition-colors group overflow-hidden">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 mt-2"></span>
-                  <div className="flex flex-col md:flex-row md:items-baseline gap-0.5 md:gap-2 overflow-hidden">
-                    <a href={craft.url} target="_blank" rel="noopener noreferrer" className="text-docs-blue underline decoration-transparent group-hover:decoration-docs-blue transition-all font-medium text-base md:text-lg truncate" dangerouslySetInnerHTML={{ __html: craft.title }} />
-                    <span className="text-xs text-gray-400 flex items-center gap-1 truncate"><ExternalLink size={10} />{craft.domain}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div
+              className="editor-content prose prose-lg max-w-none text-gray-800 leading-loose text-base md:text-lg"
+              dangerouslySetInnerHTML={{ __html: craftsHtml }}
+            />
           </div>
         );
 

@@ -56,15 +56,15 @@ export const notionService = {
   },
 
   // 4. CRAFTS
-  async getCrafts(): Promise<Craft[]> {
+  async getCrafts(): Promise<string> {
     try {
       const response = await fetch('/api/notion/crafts');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-      return data.crafts || INITIAL_CRAFTS;
+      return data.html || '';
     } catch (error) {
       console.error('Error fetching Crafts:', error);
-      return INITIAL_CRAFTS;
+      return '';
     }
   },
 
