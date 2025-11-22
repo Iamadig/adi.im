@@ -46,33 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
 
             let html = '';
-            // Simple block to HTML conversion (similar to about.ts but simplified for now)
-            // We can reuse the logic from about.ts if we extract it, but for now inline it or use simple text
-            // Actually, let's use the same logic as before but return HTML
-
-            for (const block of blocks.results) {
-                if (!('type' in block)) continue;
-
-                if (block.type === 'paragraph' && 'paragraph' in block) {
-                    const text = block.paragraph.rich_text.map((rt: any) => rt.plain_text).join('');
-                    html += `<p>${text}</p>`;
-                } else if (block.type === 'heading_1' && 'heading_1' in block) {
-                    const text = block.heading_1.rich_text.map((rt: any) => rt.plain_text).join('');
-                    html += `<h1>${text}</h1>`;
-                } else if (block.type === 'heading_2' && 'heading_2' in block) {
-                    const text = block.heading_2.rich_text.map((rt: any) => rt.plain_text).join('');
-                    html += `<h2>${text}</h2>`;
-                } else if (block.type === 'heading_3' && 'heading_3' in block) {
-                    const text = block.heading_3.rich_text.map((rt: any) => rt.plain_text).join('');
-                    html += `<h3>${text}</h3>`;
-                } else if (block.type === 'bulleted_list_item' && 'bulleted_list_item' in block) {
-                    const text = block.bulleted_list_item.rich_text.map((rt: any) => rt.plain_text).join('');
-                    html += `<li>${text}</li>`;
-                } else if (block.type === 'numbered_list_item' && 'numbered_list_item' in block) {
-                    const text = block.numbered_list_item.rich_text.map((rt: any) => rt.plain_text).join('');
-                    html += `<li>${text}</li>`;
-                }
-            }
+            html = await processBlocks(blocks.results, notion);
 
             return res.status(200).json({ content: html });
         }
@@ -109,4 +83,135 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error('Notion API Error:', error);
         return res.status(500).json({ error: 'Failed to fetch thoughts' });
     }
+}
+
+async function processBlocks(blocks: any[], notion: Client, depth: number = 0): Promise<string> {
+    let html = '';
+    let currentListType: 'ul' | 'ol' | null = null;
+
+    for (const block of blocks) {
+        if (!('type' in block)) continue;
+
+        const blockType = block.type;
+
+        // Handle List Closing
+        if (currentListType && blockType !== 'bulleted_list_item' && blockType !== 'numbered_list_item') {
+            html += currentListType === 'ul' ? '</ul>' : '</ol>';
+            currentListType = null;
+        }
+
+        // Handle List Opening
+        if (!currentListType) {
+            if (blockType === 'bulleted_list_item') {
+                currentListType = 'ul';
+                html += '<ul>';
+            } else if (blockType === 'numbered_list_item') {
+                currentListType = 'ol';
+                html += '<ol>';
+            }
+        } else {
+            // Switch list type if needed
+            if (currentListType === 'ul' && blockType === 'numbered_list_item') {
+                html += '</ul><ol>';
+                currentListType = 'ol';
+            } else if (currentListType === 'ol' && blockType === 'bulleted_list_item') {
+                html += '</ol><ul>';
+                currentListType = 'ul';
+            }
+        }
+
+        if (blockType === 'paragraph' && 'paragraph' in block) {
+            const content = richTextToHtml(block.paragraph.rich_text);
+            if (content) html += `<p>${content}</p>`;
+            else html += '<p><br/></p>'; // Empty paragraph
+        }
+        else if (blockType === 'heading_1' && 'heading_1' in block) {
+            const content = richTextToHtml(block.heading_1.rich_text);
+            if (content) html += `<h1>${content}</h1>`;
+        }
+        else if (blockType === 'heading_2' && 'heading_2' in block) {
+            const content = richTextToHtml(block.heading_2.rich_text);
+            if (content) html += `<h2>${content}</h2>`;
+        }
+        else if (blockType === 'heading_3' && 'heading_3' in block) {
+            const content = richTextToHtml(block.heading_3.rich_text);
+            if (content) html += `<h3>${content}</h3>`;
+        }
+        else if (blockType === 'bulleted_list_item' && 'bulleted_list_item' in block) {
+            const content = richTextToHtml(block.bulleted_list_item.rich_text);
+            html += `<li>${content}`;
+
+            if (block.has_children) {
+                const childrenResponse = await notion.blocks.children.list({ block_id: block.id });
+                const childrenHtml = await processBlocks(childrenResponse.results, notion, depth + 1);
+                html += childrenHtml;
+            }
+
+            html += '</li>';
+        }
+        else if (blockType === 'numbered_list_item' && 'numbered_list_item' in block) {
+            const content = richTextToHtml(block.numbered_list_item.rich_text);
+            html += `<li>${content}`;
+
+            if (block.has_children) {
+                const childrenResponse = await notion.blocks.children.list({ block_id: block.id });
+                const childrenHtml = await processBlocks(childrenResponse.results, notion, depth + 1);
+                html += childrenHtml;
+            }
+
+            html += '</li>';
+        }
+        else if (blockType === 'quote' && 'quote' in block) {
+            const content = richTextToHtml(block.quote.rich_text);
+            if (content) html += `<blockquote>${content}</blockquote>`;
+        }
+        else if (blockType === 'callout' && 'callout' in block) {
+            const content = richTextToHtml(block.callout.rich_text);
+            const icon = block.callout.icon?.type === 'emoji' ? block.callout.icon.emoji : '💡';
+            html += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-100 my-4 flex gap-3"><div class="text-xl select-none">${icon}</div><div class="flex-1">${content}</div></div>`;
+        }
+        else if (blockType === 'divider') {
+            html += '<hr />';
+        }
+        else if (blockType === 'image' && 'image' in block) {
+            const url = block.image.type === 'external' ? block.image.external.url : block.image.file.url;
+            const caption = block.image.caption?.length ? richTextToHtml(block.image.caption) : '';
+            html += `<figure class="my-6"><img src="${url}" alt="${caption}" class="rounded-lg w-full" />${caption ? `<figcaption class="text-center text-sm text-gray-500 mt-2">${caption}</figcaption>` : ''}</figure>`;
+        }
+    }
+
+    // Close any open list
+    if (currentListType) {
+        html += currentListType === 'ul' ? '</ul>' : '</ol>';
+    }
+
+    return html;
+}
+
+function richTextToHtml(richText: any[]): string {
+    if (!richText || richText.length === 0) return '';
+
+    return richText.map((rt) => {
+        let text = rt.plain_text;
+
+        // Escape HTML characters
+        text = text.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        const { annotations } = rt;
+        if (annotations.bold) text = `<b>${text}</b>`;
+        if (annotations.italic) text = `<i>${text}</i>`;
+        if (annotations.strikethrough) text = `<s>${text}</s>`;
+        if (annotations.underline) text = `<u>${text}</u>`;
+        if (annotations.code) text = `<code>${text}</code>`;
+
+        if (rt.href) {
+            text = `<a href="${rt.href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+
+        return text;
+    }).join('');
 }
