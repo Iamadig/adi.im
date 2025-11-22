@@ -168,7 +168,20 @@ async function processBlocks(blocks: any[], notion: Client, depth: number = 0): 
         else if (blockType === 'callout' && 'callout' in block) {
             const content = richTextToHtml(block.callout.rich_text);
             const icon = block.callout.icon?.type === 'emoji' ? block.callout.icon.emoji : '💡';
-            html += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-100 my-4 flex gap-3"><div class="text-xl select-none">${icon}</div><div class="flex-1">${content}</div></div>`;
+
+            let childrenHtml = '';
+            if (block.has_children) {
+                const childrenResponse = await notion.blocks.children.list({ block_id: block.id });
+                childrenHtml = await processBlocks(childrenResponse.results, notion, depth + 1);
+            }
+
+            html += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-100 my-4 flex gap-3">
+                <div class="text-xl select-none">${icon}</div>
+                <div class="flex-1 space-y-2">
+                    <div>${content}</div>
+                    ${childrenHtml}
+                </div>
+            </div>`;
         }
         else if (blockType === 'divider') {
             html += '<hr />';
