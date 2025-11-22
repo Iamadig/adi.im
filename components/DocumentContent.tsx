@@ -392,7 +392,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
               {isEditing && (
                 <button onClick={handlePolish} disabled={isPolishing} className="flex items-center gap-2 text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full hover:bg-purple-200 transition-colors print:hidden">
                   {isPolishing ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
-                  {isPolishing ? 'Refining...' : 'Refine with AI'}
+                  {isPolishing ? 'Rewriting...' : 'Rewrite with AI'}
                 </button>
               )}
             </div>
