@@ -91,6 +91,18 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
     return tmp.textContent || tmp.innerText || "";
   }, []);
 
+  // Handle link clicks in contentEditable areas
+  const handleLinkClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    // Check if the clicked element is a link or inside a link
+    const link = target.closest('a');
+    if (link && link.href) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open(link.href, '_blank', 'noopener,noreferrer');
+    }
+  }, []);
+
   // --- WORD COUNT EFFECT ---
   useEffect(() => {
     const calculateWords = () => {
@@ -366,6 +378,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
               onInput={handleInput}
               onKeyUp={checkFormats}
               onMouseUp={checkFormats}
+              onClick={handleLinkClick}
             />
           </div>
         );
@@ -399,6 +412,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
                   onInput={handleInput}
                   onKeyUp={checkFormats}
                   onMouseUp={checkFormats}
+                  onClick={handleLinkClick}
                 />
               </article>
             </div>
@@ -457,6 +471,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
             <div
               className="editor-content prose prose-lg max-w-none text-gray-800 leading-loose text-base md:text-lg"
               dangerouslySetInnerHTML={{ __html: craftsHtml }}
+              onClick={handleLinkClick}
             />
           </div>
         );
@@ -490,7 +505,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
             {recommendations.map((section) => (
               <div key={section.id} className="mb-8">
                 <h3 className="text-xl font-bold text-black mb-4">{section.title}</h3>
-                <ul className="editor-content list-disc pl-6 space-y-2">
+                <ul className="editor-content list-disc pl-6 space-y-2" onClick={handleLinkClick}>
                   {/* 1. Static Items from Notion */}
                   {section.items.map((item, idx) => (
                     <li key={idx} className="text-lg text-gray-800 leading-relaxed pl-1" dangerouslySetInnerHTML={{ __html: item }} />

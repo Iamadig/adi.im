@@ -1,131 +1,171 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Docs Folio - Personal Website</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'docs-gray': '#F9FBFD',
-              'docs-blue': '#1A73E8',
-              'docs-blue-hover': '#1765CC',
-              'docs-blue-bg': '#E8F0FE',
-              'docs-text': '#1F1F1F',
-              'docs-text-light': '#444746',
-            },
-            fontFamily: {
-              sans: ['Arial', 'sans-serif'], // Google Docs default
-            },
-            boxShadow: {
-              'page': '0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15)',
-            }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>Docs Folio - Personal Website</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'docs-gray': '#F9FBFD',
+            'docs-blue': '#1A73E8',
+            'docs-blue-hover': '#1765CC',
+            'docs-blue-bg': '#E8F0FE',
+            'docs-text': '#1F1F1F',
+            'docs-text-light': '#444746',
           },
+          fontFamily: {
+            sans: ['Arial', 'sans-serif'], // Google Docs default
+          },
+          boxShadow: {
+            'page': '0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15)',
+          }
         },
-      }
-    </script>
-    <style>
+      },
+    }
+  </script>
+  <style>
+    body {
+      background-color: #F9FBFD;
+      overflow-y: hidden;
+      /* App handles scrolling */
+    }
+
+    /* Custom Scrollbar to mimic Docs */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #dadce0;
+      border: 4px solid transparent;
+      background-clip: content-box;
+      border-radius: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #bdc1c6;
+      border: 4px solid transparent;
+      background-clip: content-box;
+    }
+
+    /* Editor Content List Styles - Restore what Tailwind reset removes */
+    .editor-content ul {
+      list-style-type: disc;
+      padding-left: 1.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .editor-content ol {
+      list-style-type: decimal;
+      padding-left: 1.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .editor-content li {
+      margin-bottom: 0.25rem;
+      padding-left: 0.25rem;
+    }
+
+    .editor-content li>ul,
+    .editor-content li>ol {
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Editor Content Link Styles - Google Docs style */
+    .editor-content a {
+      color: #1A73E8;
+      text-decoration: underline;
+      text-decoration-color: #1A73E8;
+      text-underline-offset: 2px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      /* Mobile-specific fixes */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(26, 115, 232, 0.2);
+      -webkit-touch-callout: default;
+      user-select: auto;
+      /* Ensure adequate tap target */
+      display: inline-block;
+      position: relative;
+    }
+
+    .editor-content a:hover {
+      color: #1765CC;
+      text-decoration-color: #1765CC;
+    }
+
+    .editor-content a:visited {
+      color: #1A73E8;
+    }
+
+    .editor-content a:active {
+      color: #1765CC;
+      opacity: 0.8;
+    }
+
+    /* Ensure links are clickable even in contentEditable mode */
+    [contenteditable] a {
+      pointer-events: auto;
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
+
+    @media print {
+
+      html,
       body {
-        background-color: #F9FBFD;
-        overflow-y: hidden; /* App handles scrolling */
-      }
-      /* Custom Scrollbar to mimic Docs */
-      ::-webkit-scrollbar {
-        width: 12px;
-        height: 12px;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #dadce0;
-        border: 4px solid transparent;
-        background-clip: content-box;
-        border-radius: 8px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #bdc1c6;
-        border: 4px solid transparent;
-        background-clip: content-box;
+        background-color: white;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: visible !important;
+        height: auto !important;
+        display: block !important;
       }
 
-      /* Editor Content List Styles - Restore what Tailwind reset removes */
-      .editor-content ul {
-        list-style-type: disc;
-        padding-left: 1.75rem;
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .editor-content ol {
-        list-style-type: decimal;
-        padding-left: 1.75rem;
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .editor-content li {
-        margin-bottom: 0.25rem;
-        padding-left: 0.25rem; 
-      }
-      .editor-content li > ul, .editor-content li > ol {
-        margin-top: 0.25rem;
-        margin-bottom: 0.25rem;
+      #root {
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important;
       }
 
-      /* Editor Content Link Styles - Google Docs style */
-      .editor-content a {
-        color: #1A73E8;
-        text-decoration: underline;
-        text-decoration-color: #1A73E8;
-        text-underline-offset: 2px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .editor-content a:hover {
-        color: #1765CC;
-        text-decoration-color: #1765CC;
-      }
-      .editor-content a:visited {
-        color: #1A73E8;
+      /* Hide UI elements that might not be caught by utility classes */
+      nav,
+      aside,
+      button,
+      .no-print {
+        display: none !important;
       }
 
-      @media print {
-        html, body {
-          background-color: white;
-          width: 100%;
-          height: 100%;
-          margin: 0;
-          padding: 0;
-          overflow: visible !important;
-          height: auto !important;
-          display: block !important;
-        }
-        #root {
-          height: auto !important;
-          overflow: visible !important;
-          display: block !important;
-        }
-        /* Hide UI elements that might not be caught by utility classes */
-        nav, aside, button, .no-print {
-          display: none !important;
-        }
-        /* Ensure the main content flows correctly */
-        .print-scroll-container {
-            overflow: visible !important;
-            height: auto !important;
-            display: block !important;
-            padding-left: 0 !important;
-        }
-        main {
-            box-shadow: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            min-height: auto !important;
-        }
+      /* Ensure the main content flows correctly */
+      .print-scroll-container {
+        overflow: visible !important;
+        height: auto !important;
+        display: block !important;
+        padding-left: 0 !important;
       }
-    </style>
+
+      main {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+      }
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -137,10 +177,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body>
-    <div id="root"></div>
+
+<body>
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
