@@ -13,9 +13,10 @@ interface DocumentContentProps {
   onContentChange: () => void;
   statsRef: React.MutableRefObject<(() => { words: number, chars: number, charsNoSpace: number }) | null>;
   viewMode: ViewMode;
+  onEditorActiveChange: (isActive: boolean) => void;
 }
 
-const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSection, onFormatChange, onContentChange, statsRef, viewMode }) => {
+const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSection, onFormatChange, onContentChange, statsRef, viewMode, onEditorActiveChange }) => {
 
   // Content States
   const [aboutHtml, setAboutHtml] = useState('');
@@ -230,20 +231,27 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
   useEffect(() => {
     const shouldListen = isEditing && (
       activeSection === SectionType.ABOUT ||
+      activeSection === SectionType.CRAFTS ||
       (activeSection === SectionType.THOUGHTS && selectedThought !== null)
     );
+
+    // Update parent state about editor availability
+    onEditorActiveChange(shouldListen);
+
     if (shouldListen) {
       const handleSelectionChange = () => checkFormats();
       document.addEventListener('selectionchange', handleSelectionChange);
       return () => document.removeEventListener('selectionchange', handleSelectionChange);
     }
-  }, [activeSection, selectedThought, checkFormats, isEditing]);
+  }, [activeSection, selectedThought, checkFormats, isEditing, onEditorActiveChange]);
 
   // --- EDITOR INIT ---
   useEffect(() => {
     if (!isLoading && editorRef.current) {
       if (activeSection === SectionType.ABOUT && editorRef.current.innerHTML !== aboutHtml) {
         editorRef.current.innerHTML = aboutHtml;
+      } else if (activeSection === SectionType.CRAFTS && editorRef.current.innerHTML !== craftsHtml) {
+        editorRef.current.innerHTML = craftsHtml;
       } else if (activeSection === SectionType.THOUGHTS && selectedThought && editorRef.current.innerHTML !== thoughtHtml) {
         editorRef.current.innerHTML = thoughtHtml;
       }
@@ -291,6 +299,8 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
     const html = e.currentTarget.innerHTML;
     if (activeSection === SectionType.ABOUT) {
       setAboutHtml(html);
+    } else if (activeSection === SectionType.CRAFTS) {
+      setCraftsHtml(html);
     } else if (activeSection === SectionType.THOUGHTS && selectedThought) {
       setThoughtHtml(html);
       const updatedThought = { ...selectedThought, content: html };
@@ -469,8 +479,13 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
           <div className="space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-black border-b pb-2 border-gray-200">Crafts</h1>
             <div
-              className="editor-content prose prose-lg max-w-none text-gray-800 leading-loose text-base md:text-lg"
-              dangerouslySetInnerHTML={{ __html: craftsHtml }}
+              ref={editorRef}
+              className={`editor-content prose prose-lg max-w-none text-gray-800 leading-loose text-base md:text-lg focus:outline-none min-h-[300px] ${isEditing ? "empty:before:content-['Start_typing...'] empty:before:text-gray-300" : ""}`}
+              contentEditable={isEditing}
+              suppressContentEditableWarning={true}
+              onInput={handleInput}
+              onKeyUp={checkFormats}
+              onMouseUp={checkFormats}
               onClick={handleLinkClick}
             />
           </div>
