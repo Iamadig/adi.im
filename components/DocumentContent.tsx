@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { SectionType, Thought, Quote, Craft, FormatState, ViewMode, GuestbookEntry, RecommendationSection } from '../types';
-import { generateQuote, polishContent } from '../services/geminiService';
+import { generateQuote, polishContent, PolishedContent } from '../services/geminiService';
 import { notionService } from '../services/notion';
 import { guestbookService } from '../services/guestbook';
-import { Sparkles, ExternalLink, Loader2, ArrowLeft, Send, CheckCircle2, Save, PenLine, Plus } from 'lucide-react';
+import { Sparkles, ExternalLink, Loader2, ArrowLeft, Send, CheckCircle2, Save, PenLine, Plus, Copy, X, Mail, Twitter, Linkedin } from 'lucide-react';
 import { DiceIcon, AlertCircleIcon } from './Icons';
 
 interface DocumentContentProps {
@@ -40,6 +40,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
   // UI States
   const [isLoading, setIsLoading] = useState(true);
   const [isPolishing, setIsPolishing] = useState(false);
+  const [formatNotification, setFormatNotification] = useState<string | null>(null);
   const [currentWordCount, setCurrentWordCount] = useState(0);
 
   // Quote Generation State
@@ -75,6 +76,14 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
       return () => clearTimeout(timer);
     }
   }, [rateLimitWarning]);
+
+  // Auto-clear format notification
+  useEffect(() => {
+    if (formatNotification) {
+      const timer = setTimeout(() => setFormatNotification(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [formatNotification]);
 
   // Auto-clear success
   useEffect(() => {
@@ -287,12 +296,19 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
     if (!editorRef.current || activeSection !== SectionType.ABOUT) return;
     setIsPolishing(true);
     const currentText = editorRef.current.innerText;
-    const polished = await polishContent(currentText);
-    const polishedHtml = polished.split('\n\n').map(para => `<p>${para}</p>`).join('');
-    setAboutHtml(polishedHtml);
-    if (editorRef.current) editorRef.current.innerHTML = polishedHtml;
+    const result = await polishContent(currentText);
+
+    if (result) {
+      // Automatically apply the result
+      const html = result.text.split('\n\n').map(para => `<p>${para}</p>`).join('');
+      setAboutHtml(html);
+      if (editorRef.current) editorRef.current.innerHTML = html;
+
+      // Show notification
+      setFormatNotification(result.formatLabel);
+      onContentChange();
+    }
     setIsPolishing(false);
-    onContentChange();
   };
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -380,6 +396,17 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
                 </button>
               )}
             </div>
+
+            {/* Format Notification Toast */}
+            {formatNotification && (
+              <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <Sparkles size={16} className="text-purple-600" />
+                <span className="text-sm text-purple-900 font-medium">
+                  Formatted as: {formatNotification}
+                </span>
+              </div>
+            )}
+
             <div
               ref={editorRef}
               className={`editor-content prose prose-lg max-w-none text-gray-800 leading-loose text-base md:text-lg focus:outline-none min-h-[300px] ${isEditing ? "empty:before:content-['Start_typing...'] empty:before:text-gray-300" : ""}`}

@@ -202,7 +202,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
         <input
           ref={textColorInputRef}
           type="color"
-          className="absolute opacity-0 -z-10 w-0 h-0"
+          className="fixed opacity-0 pointer-events-none w-[1px] h-[1px] top-0 left-0"
           onChange={(e) => executeCommand('foreColor', e.target.value)}
           disabled={disabled}
         />
@@ -214,7 +214,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
             </div>
           }
           label="Text color"
-          onClick={() => textColorInputRef.current?.click()}
+          onClick={(e) => {
+            e.preventDefault();
+            textColorInputRef.current?.click();
+          }}
+          preventFocusLoss={false}
           disabled={disabled}
         />
       </div>
@@ -223,7 +227,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
         <input
           ref={highlightColorInputRef}
           type="color"
-          className="absolute opacity-0 -z-10 w-0 h-0"
+          className="fixed opacity-0 pointer-events-none w-[1px] h-[1px] top-0 left-0"
           onChange={(e) => executeCommand('hiliteColor', e.target.value)}
           disabled={disabled}
         />
@@ -235,7 +239,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
             </div>
           }
           label="Highlight color"
-          onClick={() => highlightColorInputRef.current?.click()}
+          onClick={(e) => {
+            e.preventDefault();
+            highlightColorInputRef.current?.click();
+          }}
+          preventFocusLoss={false}
           disabled={disabled}
         />
       </div>

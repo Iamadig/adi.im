@@ -30,7 +30,14 @@ export const generateQuote = async (mood?: string): Promise<{ text: string; auth
   }
 };
 
-export const polishContent = async (text: string): Promise<string> => {
+export interface PolishedContent {
+  text: string;
+  formatType: string;
+  formatLabel: string;
+}
+
+
+export const polishContent = async (text: string): Promise<PolishedContent | null> => {
   try {
     const response = await fetch('/api/gemini/polish-content', {
       method: 'POST',
@@ -46,10 +53,10 @@ export const polishContent = async (text: string): Promise<string> => {
     }
 
     const data = await response.json();
-    return data.text || text;
+    return data;
   } catch (error) {
     console.error('Error polishing content:', error);
-    return text; // Return original text on error
+    return null;
   }
 };
 
