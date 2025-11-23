@@ -4,6 +4,7 @@ import { SectionType, Thought, Quote, Craft, FormatState, ViewMode, GuestbookEnt
 import { generateQuote, polishContent, PolishedContent } from '../services/geminiService';
 import { notionService } from '../services/notion';
 import { guestbookService } from '../services/guestbook';
+import { localStorageService } from '../services/localStorageService';
 import { Sparkles, ExternalLink, Loader2, ArrowLeft, Send, CheckCircle2, Save, PenLine, Plus, Copy, X, Mail, Twitter, Linkedin } from 'lucide-react';
 import { DiceIcon, AlertCircleIcon } from './Icons';
 
@@ -33,7 +34,6 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
   // Inline Input States (Tracked per category)
   const [inlineInputs, setInlineInputs] = useState<Record<string, string>>({}); // { "books": "typed text" }
   const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
-  const [guestNameInput, setGuestNameInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
@@ -58,7 +58,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
   // --- RATE LIMIT HELPER ---
   const checkRateLimit = useCallback(() => {
     const now = Date.now();
-    const COOLDOWN = 10000; // 10 seconds
+    const COOLDOWN = 5000; // 5 seconds
     if (now - lastGenTime < COOLDOWN) {
       const remaining = Math.ceil((COOLDOWN - (now - lastGenTime)) / 1000);
       setRateLimitWarning(`Please wait ${remaining}s before generating again.`);
@@ -185,14 +185,23 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
             break;
           case SectionType.RECOMMENDATIONS:
             if (recommendations.length === 0) {
-              const [recs, entries] = await Promise.all([
+              const [recs, approvedEntries] = await Promise.all([
                 notionService.getRecommendations(),
                 guestbookService.getEntries()
               ]);
 
               if (isMounted) {
                 setRecommendations(recs);
-                setGuestbookEntries(entries);
+
+                // Clean up expired entries and sync with approved list
+                localStorageService.cleanupExpiredEntries();
+                localStorageService.syncWithApprovedEntries(approvedEntries);
+
+                // Merge approved entries with pending local entries
+                const pendingEntries = localStorageService.getPendingEntries();
+                const mergedEntries = [...approvedEntries, ...pendingEntries];
+
+                setGuestbookEntries(mergedEntries);
               }
             }
             break;
@@ -347,26 +356,132 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
 
   // --- INLINE GUESTBOOK LOGIC ---
   const handleInlineInputChange = (categoryId: string, value: string) => {
-    setInlineInputs(prev => ({ ...prev, [categoryId]: value }));
+    // Enforce 250 character limit
+    if (value.length <= 250) {
+      setInlineInputs(prev => ({ ...prev, [categoryId]: value }));
+    }
   };
 
   const submitInlineEntry = async (categoryId: string) => {
     const content = inlineInputs[categoryId];
     if (!content || !content.trim()) return;
+
+    // Validate length
+    if (content.trim().length > 250) {
+      setRateLimitWarning('Suggestion too long (250 characters max)');
+      return;
+    }
+
     if (!checkRateLimit()) return;
 
+    // OPTIMISTIC UI: Add to localStorage immediately
+    const pendingEntry = localStorageService.addPendingEntry(
+      content.trim(),
+      categoryId,
+      'Anonymous' // Default since attribution is now inline in the content
+    );
+
+    // Update UI immediately
+    setGuestbookEntries(prev => [...prev, pendingEntry]);
+    setInlineInputs(prev => ({ ...prev, [categoryId]: '' }));
+    setSubmissionSuccess(true);
+    setFocusedCategory(null);
+    onContentChange();
+
+    // Submit to backend asynchronously (don't block UI)
     setIsSubmitting(true);
     try {
-      await guestbookService.addEntry(content.trim(), categoryId, guestNameInput.trim());
-      setInlineInputs(prev => ({ ...prev, [categoryId]: '' })); // Clear input
-      setSubmissionSuccess(true);
-      setFocusedCategory(null); // Close the input block
-      onContentChange();
+      await guestbookService.addEntry(content.trim(), categoryId, 'Anonymous');
+      // Success - entry will be approved by admin in Supabase
     } catch (err) {
-      console.error(err);
+      console.error('Failed to submit to backend:', err);
+      // Entry is still in localStorage, will retry on next page load
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // --- HELPER FUNCTIONS FOR RECOMMENDATIONS ---
+
+  /**
+   * Get smart placeholder example based on category
+   */
+  const getSmartPlaceholder = (categoryId: string): string => {
+    const examples: Record<string, string> = {
+      'books': 'The Mom Test (rec by @robfitz)',
+      'tools': 'Raycast launcher (rec by @sarah)',
+      'articles': 'How to take smart notes (rec by @ahrefs)',
+      'podcasts': 'Masters of Scale (rec by Reid Hoffman)',
+      'newsletters': 'Dense Discovery (rec by @densediscovery)',
+    };
+    return examples[categoryId] || `Add ${categoryId}...`;
+  };
+
+  /**
+   * Parse attribution from content and return structured data
+   * Supports formats: (rec by @user), (by Name), (via @handle), - suggested by Name
+   */
+  const parseAttribution = (content: string): { content: string; attribution: string | null } => {
+    // Patterns to match attribution
+    const patterns = [
+      /\(rec by ([^)]+)\)/i,
+      /\(by ([^)]+)\)/i,
+      /\(via ([^)]+)\)/i,
+      /- suggested by (.+)$/i,
+      /\(suggested by ([^)]+)\)/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        const attribution = match[1].trim();
+        const mainContent = content.replace(match[0], '').trim();
+        return { content: mainContent, attribution };
+      }
+    }
+
+    return { content, attribution: null };
+  };
+
+  /**
+   * Convert social handle to clickable link if applicable
+   */
+  const formatAttribution = (attribution: string): React.ReactElement => {
+    const trimmed = attribution.trim();
+
+    // Twitter handle
+    if (trimmed.startsWith('@')) {
+      const handle = trimmed.substring(1);
+      return (
+        <a
+          href={`https://twitter.com/${handle}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-docs-blue hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {trimmed}
+        </a>
+      );
+    }
+
+    // LinkedIn URL
+    if (trimmed.includes('linkedin.com/in/')) {
+      return (
+        <a
+          href={trimmed.startsWith('http') ? trimmed : `https://${trimmed}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-docs-blue hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          LinkedIn
+        </a>
+      );
+    }
+
+    // Plain text
+    return <span>{trimmed}</span>;
   };
 
   // --- RENDERERS ---
@@ -553,69 +668,80 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
                     <li key={idx} className="text-lg text-gray-800 leading-relaxed pl-1" dangerouslySetInnerHTML={{ __html: item }} />
                   ))}
 
-                  {/* 2. Approved Guest Items blended in */}
+                  {/* 2. Approved & Pending Guest Items */}
                   {guestbookEntries
                     .filter(entry => entry.category === section.id)
-                    .map(entry => (
-                      <li key={entry.id} className="text-lg text-gray-800 leading-relaxed pl-1 group relative">
-                        {entry.content}
-                        <span className="ml-2 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity select-none">
-                          — suggested by {entry.author}
-                        </span>
-                      </li>
-                    ))}
+                    .map(entry => {
+                      const { content: mainContent, attribution } = parseAttribution(entry.content);
+                      const isPending = entry.isPending === true;
+
+                      return (
+                        <li
+                          key={entry.id}
+                          className={`text-lg leading-relaxed pl-1 group relative transition-opacity ${isPending ? 'opacity-60' : 'text-gray-800'
+                            }`}
+                        >
+                          <span dangerouslySetInnerHTML={{ __html: mainContent }} />
+                          {attribution && (
+                            <span className="ml-1.5 text-sm text-gray-500">
+                              → {formatAttribution(attribution)}
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="ml-2 text-xs text-purple-600">✨ pending approval</span>
+                          )}
+                        </li>
+                      );
+                    })}
 
                   {/* 3. Suggestion Mode Input Block */}
                   {isEditing && (
                     <li className={`list-none relative transition-all duration-300 rounded-lg print:hidden ${focusedCategory === section.id ? '-ml-4 pl-4 pr-4 py-3 bg-blue-50/60 border border-blue-100 shadow-sm my-2' : 'pl-1 my-1'}`}>
-                      <div className="flex items-start gap-3">
-                        <div className={`mt-1.5 transition-colors ${focusedCategory === section.id ? 'text-docs-blue' : 'text-gray-300'}`}>
+                      <div className="flex items-center gap-2">
+                        <div className={`transition-colors ${focusedCategory === section.id ? 'text-docs-blue' : 'text-gray-300'}`}>
                           {focusedCategory === section.id ? <Sparkles size={16} /> : <Plus size={16} />}
                         </div>
-                        <div className="flex-1">
+
+                        <div className="flex-1 relative">
                           <input
                             type="text"
                             value={inlineInputs[section.id] || ''}
                             onChange={(e) => handleInlineInputChange(section.id, e.target.value)}
                             onFocus={() => setFocusedCategory(section.id)}
-                            // Removed onBlur to allow clicking the save button without closing
                             onKeyDown={(e) => e.key === 'Enter' && submitInlineEntry(section.id)}
-                            placeholder={focusedCategory === section.id ? `Suggestion for ${section.title}...` : `Add ${section.title.toLowerCase()}...`}
+                            placeholder={focusedCategory === section.id ? getSmartPlaceholder(section.id) : `Add ${section.title.toLowerCase()}...`}
+                            maxLength={250}
                             className={`w-full bg-transparent border-none outline-none text-lg placeholder:transition-colors ${focusedCategory === section.id ? 'text-gray-900 placeholder:text-blue-800/40' : 'text-gray-600 placeholder:text-gray-400'} focus:ring-0 p-0`}
                             disabled={isSubmitting}
                           />
 
-                          {/* Integrated Action Bar */}
-                          {focusedCategory === section.id && (
-                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-blue-200/50 animate-in fade-in slide-in-from-top-1">
-                              <div className="flex items-center gap-2">
-                                <PenLine size={12} className="text-blue-600" />
-                                <input
-                                  type="text"
-                                  value={guestNameInput}
-                                  onChange={(e) => setGuestNameInput(e.target.value)}
-                                  placeholder="Your Name (Optional)"
-                                  className="text-xs border-none outline-none bg-transparent text-blue-800 placeholder:text-blue-600/50 font-medium w-32 md:w-48 focus:ring-0 p-0"
-                                />
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setFocusedCategory(null)}
-                                  className="text-blue-700 hover:bg-blue-100 px-3 py-1 rounded text-xs font-medium transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => submitInlineEntry(section.id)}
-                                  className="bg-docs-blue text-white text-xs px-3 py-1 rounded shadow-sm hover:bg-docs-blue-hover font-medium flex items-center gap-1 transition-all"
-                                >
-                                  {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
-                                  Suggest
-                                </button>
-                              </div>
+                          {/* Character counter - positioned absolute */}
+                          {focusedCategory === section.id && inlineInputs[section.id] && inlineInputs[section.id].length > 200 && (
+                            <div className="absolute -bottom-4 right-0 text-xs text-gray-400">
+                              {inlineInputs[section.id].length}/250
                             </div>
                           )}
                         </div>
+
+                        {/* Inline action buttons - only show when focused */}
+                        {focusedCategory === section.id && (
+                          <div className="flex items-center gap-1.5 ml-2 animate-in fade-in slide-in-from-right-2">
+                            <button
+                              onClick={() => setFocusedCategory(null)}
+                              className="text-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded text-xs font-medium transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => submitInlineEntry(section.id)}
+                              disabled={!inlineInputs[section.id]?.trim()}
+                              className="bg-docs-blue text-white text-xs px-2.5 py-1 rounded shadow-sm hover:bg-docs-blue-hover font-medium flex items-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                              Suggest
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </li>
                   )}

@@ -47,6 +47,7 @@ export interface GuestbookEntry {
   createdAt: string;
   color?: string;
   isApproved: boolean;
+  isPending?: boolean; // Local-only pending entries not yet approved
 }
 
 export interface RecommendationSection {
