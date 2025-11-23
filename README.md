@@ -7,7 +7,7 @@ Personal website with Google Docs-style interface, powered by Notion CMS and Sup
 - 🎨 **Google Docs-inspired UI** - Familiar editing interface
 - 📝 **Notion CMS** - Manage all content from Notion
 - 💬 **Guestbook** - User contributions with moderation (Supabase)
-- ✨ **AI Features** - Quote generation and content polishing (Gemini)
+- ✨ **AI Features** - Content rewriting (OpenAI) and quote generation (Gemini)
 - 🔒 **Secure** - API keys protected via serverless functions
 - 📱 **Responsive** - Works on all devices
 
@@ -31,12 +31,12 @@ NOTION_THOUGHTS_DB=your_thoughts_database_id
 NOTION_QUOTES_DB=your_quotes_database_id
 NOTION_CRAFTS_DB=your_crafts_database_id
 NOTION_RECS_PAGE=your_recommendations_page_id
+OPENAI_API_KEY=your_openai_api_key
 GEMINI_API_KEY=your_gemini_api_key
 
 # Client-side variables (used by React) - MUST have VITE_ prefix
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 > **Important**: Server-side variables (for API routes) should NOT have the `VITE_` prefix. Only client-side variables need the `VITE_` prefix.
@@ -180,7 +180,7 @@ First time setup:
 - **Frontend**: React + TypeScript + Vite
 - **CMS**: Notion API
 - **Database**: Supabase
-- **AI**: Google Gemini
+- **AI**: OpenAI (GPT-4o-mini) + Google Gemini
 - **Hosting**: Vercel (recommended)
 
 ## Cost
@@ -188,10 +188,11 @@ First time setup:
 All services have generous free tiers:
 - Notion: Free
 - Supabase: Free (500MB)
+- OpenAI: Pay-as-you-go (GPT-4o-mini very cheap)
 - Gemini: Free (1M requests/month)
 - Vercel: Free (100GB bandwidth)
 
-**Total: $0/month** for typical personal site traffic
+**Total: ~$0-5/month** for typical personal site traffic (OpenAI usage is minimal)
 
 ## License
 
