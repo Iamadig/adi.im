@@ -202,7 +202,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
         <input
           ref={textColorInputRef}
           type="color"
-          className="fixed opacity-0 pointer-events-none w-[1px] h-[1px] top-0 left-0"
+          className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
           onChange={(e) => executeCommand('foreColor', e.target.value)}
           disabled={disabled}
         />
@@ -227,7 +227,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
         <input
           ref={highlightColorInputRef}
           type="color"
-          className="fixed opacity-0 pointer-events-none w-[1px] h-[1px] top-0 left-0"
+          className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
           onChange={(e) => executeCommand('hiliteColor', e.target.value)}
           disabled={disabled}
         />
