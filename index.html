@@ -120,6 +120,13 @@
       user-select: auto;
     }
 
+    /* Preserve empty paragraphs for proper spacing */
+    .editor-content p:empty,
+    .editor-content p:has(br:only-child) {
+      min-height: 1.5em;
+      line-height: 1.5em;
+    }
+
     @media print {
 
       html,

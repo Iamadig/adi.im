@@ -64,4 +64,7 @@ export interface FormatState {
   alignCenter: boolean;
   listOrdered: boolean;
   listBullet: boolean;
+  fontFamily?: string;
+  fontSize?: string;
+  blockFormat?: string;
 }

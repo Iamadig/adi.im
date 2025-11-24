@@ -10,6 +10,20 @@ import { FormatState } from '../types';
 
 const Separator = () => <div className="h-5 w-[1px] bg-gray-300 mx-1.5 shrink-0" />;
 
+// Helper function to get readable label for font size
+const getFontSizeLabel = (size: string): string => {
+  const labels: Record<string, string> = {
+    '1': '8',
+    '2': '10',
+    '3': '11',
+    '4': '14',
+    '5': '18',
+    '6': '24',
+    '7': '36',
+  };
+  return labels[size] || '11';
+};
+
 interface IconButtonProps {
   icon: React.ReactNode;
   active?: boolean;
@@ -115,23 +129,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
 
       <Separator />
 
-      {/* Zoom - Disabled UI */}
-      <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-500 cursor-default opacity-40 shrink-0">
-        100% <ChevronDown size={10} />
-      </div>
-
-      <Separator />
-
-      {/* Styles - Disabled UI */}
-      <div className="flex items-center gap-1 px-2 py-1 rounded text-sm text-gray-500 w-24 truncate shrink-0 justify-between cursor-default opacity-40">
-        Normal text <ChevronDown size={10} />
-      </div>
-
-      <Separator />
-
       {/* Font Family Select */}
-      <div className={`hidden md:block relative group ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
+      <div className="relative group">
         <select
+          value={activeFormats?.fontFamily || 'Arial'}
           onChange={(e) => executeCommand('fontName', e.target.value)}
           // Prevent focus loss
           onMouseDown={(e) => { e.stopPropagation(); }}
@@ -146,15 +147,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
           <option value="Verdana">Verdana</option>
           <option value="Trebuchet MS">Trebuchet MS</option>
         </select>
-        <div className="flex items-center gap-1 px-2 py-1 hover:bg-gray-200 rounded cursor-pointer text-sm text-gray-700 border-r border-gray-300 pr-2 mr-1 font-sans shrink-0 w-28 justify-between">
-          <span className="truncate">Arial</span>
+        <div className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-sm text-gray-700 border-r border-gray-300 pr-2 mr-1 font-sans shrink-0 w-28 justify-between ${disabled ? 'opacity-40 cursor-default' : 'hover:bg-gray-200'}`}>
+          <span className="truncate">{activeFormats?.fontFamily || 'Arial'}</span>
           <ChevronDown size={12} />
         </div>
       </div>
 
       {/* Font Size Select */}
-      <div className={`hidden md:block relative group ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
+      <div className="relative group">
         <select
+          value={activeFormats?.fontSize || '3'}
           onChange={(e) => executeCommand('fontSize', e.target.value)}
           onMouseDown={(e) => { e.stopPropagation(); }}
           className="absolute inset-0 opacity-0 w-full cursor-pointer"
@@ -169,8 +171,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeFormats, pageTitle, disa
           <option value="6">XX-Large (24pt)</option>
           <option value="7">Huge (36pt)</option>
         </select>
-        <div className="flex items-center gap-1 px-2 py-1 hover:bg-gray-200 rounded cursor-pointer text-sm text-gray-700 shrink-0 w-14 justify-between">
-          11 <ChevronDown size={12} />
+        <div className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-sm text-gray-700 shrink-0 w-14 justify-between ${disabled ? 'opacity-40 cursor-default' : 'hover:bg-gray-200'}`}>
+          {getFontSizeLabel(activeFormats?.fontSize || '3')} <ChevronDown size={12} />
         </div>
       </div>
 

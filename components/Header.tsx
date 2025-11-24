@@ -86,11 +86,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, title, setTitle, sa
           <CommentIcon />
         </button>
 
-        {/* Mode Switcher */}
-        <div className="relative" ref={modeMenuRef}>
+        {/* Mobile Mode Toggle - Simple toggle button */}
+        <button
+          onClick={() => onViewModeChange(viewMode === 'editing' ? 'viewing' : 'editing')}
+          className="sm:hidden p-2 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
+          title={viewMode === 'editing' ? 'Switch to Viewing' : 'Switch to Editing'}
+        >
+          {viewMode === 'editing' ? <PencilIcon size={20} /> : <EyeIcon size={20} />}
+        </button>
+
+        {/* Desktop Mode Switcher - Dropdown menu */}
+        <div className="relative hidden sm:block" ref={modeMenuRef}>
           <button
             onClick={() => setIsModeMenuOpen(!isModeMenuOpen)}
-            className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
             title="Switch Mode"
           >
             {viewMode === 'editing' ? <PencilIcon size={18} /> : <EyeIcon size={18} />}
@@ -125,7 +134,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, title, setTitle, sa
 
         <div className="h-6 w-[1px] bg-gray-300 hidden sm:block"></div>
 
-        <button className="bg-[#C2E7FF] text-[#001d35] px-4 md:px-6 py-2 md:py-2.5 rounded-full flex items-center gap-2 transition-colors font-medium text-sm whitespace-nowrap opacity-50 cursor-default">
+        {/* Share button - Desktop only */}
+        <button className="hidden sm:flex bg-[#C2E7FF] text-[#001d35] px-4 md:px-6 py-2 md:py-2.5 rounded-full items-center gap-2 transition-colors font-medium text-sm whitespace-nowrap opacity-50 cursor-default">
           <LockIcon />
           <span className="hidden sm:inline">Share</span>
         </button>

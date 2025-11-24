@@ -234,6 +234,38 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
   // --- FORMATTING ---
   const checkFormats = useCallback(() => {
     if (!document || !isEditing) return;
+
+    const selection = window.getSelection();
+    let blockFormat = 'p';
+    let fontFamily = 'Arial';
+    let fontSize = '3';
+
+    // Get block format (p, h1, h2, etc.)
+    if (selection && selection.anchorNode) {
+      let node = selection.anchorNode.nodeType === Node.TEXT_NODE
+        ? selection.anchorNode.parentElement
+        : selection.anchorNode as HTMLElement;
+
+      while (node && node !== editorRef.current) {
+        const tagName = node.tagName?.toLowerCase();
+        if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+          blockFormat = tagName;
+          break;
+        }
+        node = node.parentElement;
+      }
+    }
+
+    // Get font family and size from commands
+    const fontFamilyValue = document.queryCommandValue('fontName');
+    const fontSizeValue = document.queryCommandValue('fontSize');
+
+    if (fontFamilyValue) {
+      // Extract just the first font name from the font stack (e.g., "Arial, sans-serif" -> "Arial")
+      fontFamily = fontFamilyValue.replace(/['"]/g, '').split(',')[0].trim();
+    }
+    if (fontSizeValue) fontSize = fontSizeValue;
+
     const formats: FormatState = {
       bold: document.queryCommandState('bold'),
       italic: document.queryCommandState('italic'),
@@ -242,6 +274,9 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
       alignCenter: document.queryCommandState('justifyCenter'),
       listOrdered: document.queryCommandState('insertOrderedList'),
       listBullet: document.queryCommandState('insertUnorderedList'),
+      fontFamily,
+      fontSize,
+      blockFormat,
     };
     onFormatChange(formats);
   }, [onFormatChange, isEditing]);
@@ -274,7 +309,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({ activeSectio
         editorRef.current.innerHTML = thoughtHtml;
       }
     }
-  }, [activeSection, isLoading, selectedThought]);
+  }, [activeSection, isLoading, selectedThought, aboutHtml, craftsHtml, thoughtHtml]);
 
   const handleThoughtClick = async (thought: Thought) => {
     setIsLoading(true);
