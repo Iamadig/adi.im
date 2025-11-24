@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Header } from './components/Header';
 import { Toolbar } from './components/Toolbar';
 import { Sidebar } from './components/Sidebar';
@@ -180,6 +181,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 };
