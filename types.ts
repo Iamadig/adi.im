@@ -5,7 +5,6 @@ export enum SectionType {
   ABOUT = 'About Me',
   THOUGHTS = 'Thoughts',
   QUOTES = 'Quotes',
-  CRAFTS = 'Crafts',
   RECOMMENDATIONS = 'Recommendations'
 }
 
@@ -32,28 +31,32 @@ export interface Quote {
   author: string;
 }
 
-export interface Craft {
+export interface RecommendationItem {
   id: string;
-  title: string;
-  url: string;
-  domain: string;
-}
-
-export interface GuestbookEntry {
-  id: string;
-  content: string;
-  author: string;
-  category: string; // New field to track which list this belongs to (Books, Tools, etc.)
-  createdAt: string;
-  color?: string;
-  isApproved: boolean;
-  isPending?: boolean; // Local-only pending entries not yet approved
+  html: string;
+  attribution?: string | null;
+  kind: string;
 }
 
 export interface RecommendationSection {
   id: string;
   title: string;
-  items: string[];
+  items: RecommendationItem[];
+}
+
+export interface OutlineItem {
+  id: string;
+  label: string;
+  level: 1 | 2 | 3;
+}
+
+export interface SiteContentSnapshot {
+  generatedAt: string;
+  aboutHtml: string;
+  craftsHtml: string;
+  thoughts: Thought[];
+  quotes: Quote[];
+  recommendations: RecommendationSection[];
 }
 
 export interface FormatState {

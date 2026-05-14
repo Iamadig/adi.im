@@ -1,0 +1,41 @@
+@media print {
+  html,
+  body {
+    width: 100%;
+    height: auto !important;
+    margin: 0;
+    padding: 0;
+    overflow: visible !important;
+    background: white;
+    color: black;
+  }
+
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  nav,
+  aside,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-scroll-container {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    padding-left: 0 !important;
+  }
+
+  main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+}

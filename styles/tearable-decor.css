@@ -1,0 +1,157 @@
+@layer components {
+  .tearable-paper,
+  .tearable-blob,
+  .tearable-clay,
+  .tearable-gear,
+  .tearable-scribble {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .tearable-paper {
+    filter: drop-shadow(0 18px 18px rgba(37, 34, 29, 0.12));
+    opacity: 0.92;
+  }
+
+  .tearable-paper-coral {
+    left: 7%;
+    top: 86px;
+    width: min(470px, 42vw);
+    height: 180px;
+    background: #e88468;
+    clip-path: polygon(4% 9%, 100% 33%, 93% 100%, 72% 86%, 54% 91%, 34% 82%, 21% 86%, 5% 75%, 0 72%);
+    transform: rotate(15deg);
+  }
+
+  .tearable-paper-lilac {
+    right: 13%;
+    top: 92px;
+    width: min(330px, 31vw);
+    height: 370px;
+    background: #b5b0d4;
+    clip-path: polygon(16% 2%, 91% 6%, 100% 86%, 34% 100%, 0 47%);
+    transform: rotate(12deg);
+  }
+
+  .tearable-paper-cream {
+    left: 29%;
+    top: 26px;
+    width: 280px;
+    height: 220px;
+    background: rgba(221, 211, 195, 0.74);
+    clip-path: polygon(22% 0, 100% 18%, 85% 95%, 6% 80%, 0 25%);
+    transform: rotate(13deg);
+  }
+
+  .tearable-paper-salmon {
+    right: 2%;
+    top: 206px;
+    width: 240px;
+    height: 310px;
+    background: #df8067;
+    clip-path: polygon(28% 4%, 87% 0, 96% 43%, 86% 89%, 55% 100%, 8% 96%, 0 60%, 9% 22%);
+    transform: rotate(-4deg);
+  }
+
+  .tearable-blob-mint {
+    left: 1%;
+    top: 300px;
+    width: 300px;
+    height: 145px;
+    background: #a5cfc0;
+    border-radius: 54% 46% 45% 55% / 62% 38% 56% 44%;
+    transform: rotate(15deg);
+    opacity: 0.88;
+  }
+
+  .tearable-blob-sage {
+    left: 51%;
+    top: 70px;
+    width: 210px;
+    height: 275px;
+    background: #98c8bf;
+    border-radius: 48% 52% 42% 58% / 30% 44% 56% 70%;
+    transform: rotate(10deg);
+    opacity: 0.88;
+  }
+
+  .tearable-clay {
+    border: 2px solid rgba(17, 17, 15, 0.72);
+    box-shadow: inset 9px 12px 18px rgba(255,255,255,0.32), inset -10px -12px 18px rgba(17,17,15,0.22), 0 10px 18px rgba(17,17,15,0.18);
+  }
+
+  .tearable-clay-bean {
+    left: 31%;
+    top: 30px;
+    width: 80px;
+    height: 42px;
+    background: #91b9af;
+    border-radius: 50% 46% 50% 48% / 62% 42% 58% 38%;
+    transform: rotate(34deg);
+  }
+
+  .tearable-clay-pill {
+    right: 6%;
+    bottom: 280px;
+    width: 104px;
+    height: 48px;
+    background: #9bbeb8;
+    border-radius: 999px;
+    transform: rotate(-48deg);
+  }
+
+  .tearable-gear {
+    right: 3%;
+    top: 42px;
+    width: 190px;
+    height: 190px;
+    background: radial-gradient(circle at center, #d8d6d1 0 31%, #a9a4cf 32% 58%, #8e88bc 72%);
+    clip-path: polygon(46% 0, 58% 0, 64% 13%, 75% 8%, 86% 16%, 82% 30%, 96% 36%, 100% 50%, 88% 60%, 93% 73%, 82% 86%, 68% 82%, 58% 98%, 43% 100%, 36% 85%, 23% 91%, 10% 82%, 16% 68%, 0 58%, 0 43%, 14% 36%, 8% 22%, 20% 10%, 34% 15%);
+    filter: drop-shadow(0 10px 9px rgba(17, 17, 15, 0.32));
+  }
+
+  .tearable-scribble {
+    border: 3px solid #11110f;
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    opacity: 0.92;
+  }
+
+  .tearable-scribble::before,
+  .tearable-scribble::after {
+    position: absolute;
+    inset: 8px;
+    border: 3px solid #11110f;
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    content: "";
+    transform: rotate(17deg);
+  }
+
+  .tearable-scribble-left {
+    left: 15%;
+    top: 34px;
+    width: 150px;
+    height: 72px;
+    transform: rotate(-28deg);
+  }
+
+  .tearable-scribble-right {
+    right: 4%;
+    top: 292px;
+    width: 88px;
+    height: 42px;
+    transform: rotate(42deg);
+  }
+
+  .tearable-scribble-small {
+    left: 49%;
+    top: 78px;
+    width: 42px;
+    height: 42px;
+    transform: rotate(20deg);
+  }
+}

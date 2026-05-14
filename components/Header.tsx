@@ -1,148 +1,123 @@
-
-import React, { useEffect, useState, useRef } from 'react';
-import { DocsIcon, LockIcon, CommentIcon, VideoIcon, PencilIcon, EyeIcon } from './Icons';
-import { Menu, CheckCircle, Cloud, ChevronDown } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { CheckCircle2, ChevronDown, Eye, Menu, Pencil, Search, Sidebar } from 'lucide-react';
 import { ViewMode } from '../types';
 
 interface HeaderProps {
   onMenuClick?: () => void;
   title: string;
-  setTitle: (title: string) => void;
   saveStatus: 'saved' | 'saving' | 'error';
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuClick, title, setTitle, saveStatus, viewMode, onViewModeChange }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onMenuClick,
+  title,
+  saveStatus,
+  viewMode,
+  onViewModeChange,
+}) => {
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = `${title} - Docs Folio`;
+    document.title = `${title} - Personal Website`;
   }, [title]);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modeMenuRef.current && !modeMenuRef.current.contains(event.target as Node)) {
         setIsModeMenuOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const StarIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-    </svg>
-  );
-
   return (
-    <header className="bg-[#F9FBFD] px-4 py-3 flex items-center justify-between w-full z-40 shrink-0 print:hidden">
-      <div className="flex items-center gap-3 overflow-hidden">
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-200 rounded-full"
-          onClick={onMenuClick}
-        >
-          <Menu size={24} />
-        </button>
+    <header className="codex-topbar z-40 flex w-full shrink-0 items-center gap-3 px-3 py-2 print:hidden">
+      <button
+        className="codex-icon-button md:hidden"
+        onClick={onMenuClick}
+        aria-label="Open navigation"
+      >
+        <Menu size={18} />
+      </button>
 
-        <a href="#" className="hover:opacity-80 transition-opacity shrink-0">
-          <DocsIcon />
-        </a>
-        <div className="flex flex-col overflow-hidden relative z-50 justify-center">
-          <div className="flex items-center gap-1">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="text-lg text-docs-text px-1.5 py-0.5 rounded hover:border hover:border-gray-400 focus:border-docs-blue focus:outline-none focus:ring-2 focus:ring-docs-blue/20 bg-transparent w-full md:w-64 truncate font-medium"
-            />
-            <div className="hidden sm:flex items-center gap-1 text-gray-500 rounded-full p-1 cursor-default shrink-0 opacity-40">
-              <StarIcon />
-            </div>
-            {/* Status Indicator */}
-            <div className="hidden md:flex items-center gap-2 ml-2 text-xs text-gray-500 transition-opacity duration-500">
-              {saveStatus === 'saving' && (
-                <>
-                  <span className="animate-pulse">Saving...</span>
-                </>
-              )}
-              {saveStatus === 'saved' && (
-                <div className="flex items-center gap-2 text-gray-500" title="All changes saved to Drive">
-                  <Cloud size={18} />
-                  <CheckCircle size={14} className="text-black" />
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="codex-app-glyph hidden sm:inline-flex"><Sidebar size={15} /></span>
+        <div className="leading-tight">
+          <div className="truncate text-[13px] font-semibold text-codex-ink">{title}</div>
+          <div className="font-mono text-[11px] text-codex-faint">profile / thoughts / quotes / recommendation</div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4 shrink-0 ml-2">
-        <button className="hidden sm:block p-2 rounded-full transition-colors opacity-40 cursor-default" title="Open comment history">
-          <CommentIcon />
-        </button>
+      <div className="codex-searchbar">
+        <Search size={14} />
+        <span>Search profile, thoughts, quotes, recommendation...</span>
+      </div>
 
-        {/* Mobile Mode Toggle - Simple toggle button */}
-        <button
-          onClick={() => onViewModeChange(viewMode === 'editing' ? 'viewing' : 'editing')}
-          className="sm:hidden p-2 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
-          title={viewMode === 'editing' ? 'Switch to Viewing' : 'Switch to Editing'}
-        >
-          {viewMode === 'editing' ? <PencilIcon size={20} /> : <EyeIcon size={20} />}
-        </button>
+      <div className="ml-auto flex items-center gap-2">
+        <span className="codex-sync-chip">
+          <CheckCircle2 size={13} />
+          {saveStatus === 'saving' ? 'updating' : saveStatus === 'saved' ? 'saved' : 'needs refresh'}
+        </span>
 
-        {/* Desktop Mode Switcher - Dropdown menu */}
         <div className="relative hidden sm:block" ref={modeMenuRef}>
           <button
             onClick={() => setIsModeMenuOpen(!isModeMenuOpen)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
-            title="Switch Mode"
+            className="codex-pill-button"
+            title="Switch mode"
           >
-            {viewMode === 'editing' ? <PencilIcon size={18} /> : <EyeIcon size={18} />}
-            <ChevronDown size={14} />
+            {viewMode === 'editing' ? <Pencil size={15} /> : <Eye size={15} />}
+            <span>{viewMode === 'editing' ? 'Editing' : 'Viewing'}</span>
+            <ChevronDown size={13} />
           </button>
 
           {isModeMenuOpen && (
-            <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+            <div className="codex-menu absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-codex-border bg-codex-panel-strong py-1 shadow-2xl">
               <button
-                onClick={() => { onViewModeChange('editing'); setIsModeMenuOpen(false); }}
-                className={`w-full text-left px-4 py-2 flex items-center gap-3 hover:bg-gray-100 ${viewMode === 'editing' ? 'text-docs-blue bg-blue-50' : 'text-gray-700'}`}
+                onClick={() => {
+                  onViewModeChange('viewing');
+                  setIsModeMenuOpen(false);
+                }}
+                className="codex-menu-item"
               >
-                <PencilIcon size={16} />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Editing</span>
-                  <span className="text-xs text-gray-500">Edit document directly</span>
-                </div>
+                <Eye size={15} />
+                <span>
+                  <span className="block text-sm font-medium">Viewing</span>
+                  <span className="block text-xs text-codex-faint">Read-only view</span>
+                </span>
               </button>
               <button
-                onClick={() => { onViewModeChange('viewing'); setIsModeMenuOpen(false); }}
-                className={`w-full text-left px-4 py-2 flex items-center gap-3 hover:bg-gray-100 ${viewMode === 'viewing' ? 'text-docs-blue bg-blue-50' : 'text-gray-700'}`}
+                onClick={() => {
+                  onViewModeChange('editing');
+                  setIsModeMenuOpen(false);
+                }}
+                className="codex-menu-item"
               >
-                <EyeIcon size={16} />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Viewing</span>
-                  <span className="text-xs text-gray-500">Read or print final doc</span>
-                </div>
+                <Pencil size={15} />
+                <span>
+                  <span className="block text-sm font-medium">Editing</span>
+                  <span className="block text-xs text-codex-faint">Make changes</span>
+                </span>
               </button>
             </div>
           )}
         </div>
 
-        <div className="h-6 w-[1px] bg-gray-300 hidden sm:block"></div>
-
-        {/* Share button - Desktop only */}
-        <button className="hidden sm:flex bg-[#C2E7FF] text-[#001d35] px-4 md:px-6 py-2 md:py-2.5 rounded-full items-center gap-2 transition-colors font-medium text-sm whitespace-nowrap opacity-50 cursor-default">
-          <LockIcon />
-          <span className="hidden sm:inline">Share</span>
+        <button
+          onClick={() => onViewModeChange(viewMode === 'editing' ? 'viewing' : 'editing')}
+          className="codex-icon-button sm:hidden"
+          aria-label={viewMode === 'editing' ? 'Switch to viewing' : 'Switch to editing'}
+        >
+          {viewMode === 'editing' ? <Pencil size={17} /> : <Eye size={17} />}
         </button>
 
-        <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-medium text-sm ring-2 ring-white cursor-pointer hover:ring-gray-200">
-          AG
-        </div>
+        <a href="mailto:adi@watercoolerdev.com" className="codex-contact-button">
+          Contact
+        </a>
       </div>
     </header>
   );

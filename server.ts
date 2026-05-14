@@ -50,6 +50,10 @@ function createVercelHandler(handler: (req: VercelRequest, res: VercelResponse) 
         statusCode = code;
         return vercelRes;
       },
+      setHeader: (name: string, value: string) => {
+        res.setHeader(name, value);
+        return vercelRes;
+      },
       json: (data: any) => {
         res.status(statusCode).json(data);
       },
@@ -68,22 +72,6 @@ function createVercelHandler(handler: (req: VercelRequest, res: VercelResponse) 
 
 // Import and register API routes
 async function setupRoutes() {
-  // Notion routes
-  const aboutHandler = (await import('./api/notion/about.ts')).default;
-  app.get('/api/notion/about', createVercelHandler(aboutHandler));
-
-  const thoughtsHandler = (await import('./api/notion/thoughts.ts')).default;
-  app.get('/api/notion/thoughts', createVercelHandler(thoughtsHandler));
-
-  const quotesHandler = (await import('./api/notion/quotes.ts')).default;
-  app.get('/api/notion/quotes', createVercelHandler(quotesHandler));
-
-  const craftsHandler = (await import('./api/notion/crafts.ts')).default;
-  app.get('/api/notion/crafts', createVercelHandler(craftsHandler));
-
-  const recommendationsHandler = (await import('./api/notion/recommendations.ts')).default;
-  app.get('/api/notion/recommendations', createVercelHandler(recommendationsHandler));
-
   // Gemini routes
   const generateQuoteHandler = (await import('./api/gemini/generate-quote.ts')).default;
   app.post('/api/gemini/generate-quote', createVercelHandler(generateQuoteHandler));
@@ -98,15 +86,11 @@ setupRoutes().then(() => {
     console.log(`📝 API routes available at http://localhost:${PORT}/api/*`);
     console.log(`\n💡 Make sure your .env.local file has the required environment variables:`);
     console.log(`   - NOTION_KEY`);
-    console.log(`   - NOTION_ABOUT_PAGE`);
-    console.log(`   - NOTION_THOUGHTS_DB`);
-    console.log(`   - NOTION_QUOTES_DB`);
-    console.log(`   - NOTION_CRAFTS_DB`);
-    console.log(`   - NOTION_RECS_PAGE`);
+    console.log(`   - NOTION_RECOMMENDATIONS_DB`);
+    console.log(`   - OPENAI_API_KEY (optional, content polish API)`);
     console.log(`   - GEMINI_API_KEY (optional)\n`);
   });
 }).catch((error) => {
   console.error('Failed to start server:', error);
   process.exit(1);
 });
-

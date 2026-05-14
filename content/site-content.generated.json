@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-05-13T16:49:56.148Z",
+  "aboutHtml": "<p>I’m Adi. I build AI products, agent infrastructure, and fun little internet experiments.</p><p>Currently I’m building <a href=\"http://watercoolerdev.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Watercooler</a>, a coordination surface and memory layer for coding agents.</p><p>Previously, I founded <a href=\"https://www.mining-technology.com/contractors/data/koan-analytics/\" target=\"_blank\" rel=\"noopener noreferrer\">Koan Analytics</a>, an AI platform for mineral exploration, and worked on product operations at <a href=\"https://web.didiglobal.com/au/\" target=\"_blank\" rel=\"noopener noreferrer\">DiDi</a>.</p><p><b>selected work</b></p><ul><li><a href=\"http://watercoolerdev.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Watercooler</a> - coordination and memory systems for coding agents.</li><li><a href=\"http://makemyclaw.com/\" target=\"_blank\" rel=\"noopener noreferrer\">MakeMyClaw</a> - one-click deploy infrastructure for OpenClaw and Hermes agents.</li><li><a href=\"https://x.com/learnfromlenny\" target=\"_blank\" rel=\"noopener noreferrer\">LearnFromLenny</a> - an X agent that answers with Lenny Rachitsky’s product corpus.</li><li><a href=\"http://moltipedia.ai/\" target=\"_blank\" rel=\"noopener noreferrer\">Moltipedia</a> - a playful experiment in agent-written knowledge systems.</li></ul><p><b>find me</b></p><ul><li><a href=\"mailto:adi@watercoolerdev.com\" target=\"_blank\" rel=\"noopener noreferrer\">email</a></li><li><a href=\"https://x.com/IamAdiG\" target=\"_blank\" rel=\"noopener noreferrer\">x / twitter</a></li><li><a href=\"https://www.linkedin.com/in/adityag123/\" target=\"_blank\" rel=\"noopener noreferrer\">linkedin</a></li><li><a href=\"https://github.com/Iamadig\" target=\"_blank\" rel=\"noopener noreferrer\">github</a></li></ul>",
+  "craftsHtml": "",
+  "thoughts": [
+    {
+      "id": "2b20aff1-c9a9-8173-983d-fb96361dad44",
+      "title": "Grief is like glitter",
+      "date": "2025-07-05",
+      "tags": [],
+      "description": "Beautiful analogy of grief to something usually associated with celebration, glitter",
+      "content": "<p>I recently came across this beautifully written piece on twitter on how grief is like glitter:</p><div class=\"bg-gray-50 p-4 rounded-lg border border-gray-100 my-4 flex gap-3\"><div class=\"text-xl select-none\">💡</div><div class=\"flex-1 space-y-2\">Someone said grief is like glitter. It clings to everything. Hides in corners. Slips into your socks. Appears on your fingertips when you’re reaching for a glass of water, or brushing your hair before bed. It settles in places no one else can see. And sometimes, it sparkles. Sometimes, it doesn’t.<p>And love, in all its forms, is the reason we ever grieve at all.</p><p>So if it hurts, maybe that’s okay. If it glitters in the dark and you cry when no one is looking, maybe that’s okay too. You are not weak for remembering. You are not broken for carrying pieces of people with you. That’s what makes you real. That’s what makes you capable of love.</p><p>And maybe that’s the kindest thing about grief: it’s evidence that something mattered. That someone left fingerprints on your heart so brightly, the light still catches on them. That you lived a moment so fully, its echo still finds its way back into your lungs.</p><p>Some people lose things they love—books, cities, voices, future plans—and keep walking as if nothing happened. Others crumble at the touch of a sweater sleeve or the sound of a name. There’s no proper timeline for learning how to live with what you miss. Some days you’ll do it gracefully. Other days, you’ll choke on it. That’s still living.</p><p>And I think that’s true—not because it makes grief prettier, but because it makes it stubborn. Grief does not knock politely and leave when you ask. It spills. It stains. It stays. People imagine grief as a clean wound: blood, bandage, better. But really, it’s a messy room you can’t fully clean. A scent that lingers even after all the windows are opened. A sound you keep hearing long after the music stops.</p></div></div><p>I am not sure who the writer is but some basic online snooping points me to this tiny twitter (50 followers) account: <a href=\"https://x.com/latehourletter\" target=\"_blank\" rel=\"noopener noreferrer\">https://x.com/latehourletter</a>. \n\n</p>"
+    },
+    {
+      "id": "2b20aff1-c9a9-81b8-9b5f-ff20640990f3",
+      "title": "Why global founders cannot afford to ignore Saudi Arabia",
+      "date": "2025-02-10",
+      "tags": [],
+      "description": "Key insights from 7 weeks on the ground in Saudi Arabia, exploring funding dynamics, Vision 2030 alignment, and cultural nuances",
+      "content": "<p><br/></p><p>I recently spent seven weeks embedded in Riyadh&#039;s startup ecosystem, splitting my time between The Garage — a 28,000 sqm innovation hub hosting 300+ startups —and meetings with founders, VCs, and ministers. Here&#039;s what global entrepreneurs need to know:</p><h2><b>Insight #1: The Saudi Funding Paradox: Why Late-Stage Startups Thrive While Early-Stage Ventures Struggle</b></h2><h3>Saudi Arabia&#039;s startup scene is a gold rush—but not everyone gets a shovel.</h3><p>Saudi Arabia&#039;s $500B futuristic city NEOM and Red Sea tourism megaprojects dominate headlines, creating the illusion of limitless opportunity. But beneath the glitz lies growing pains of a maturing ecosystem: <b>early-stage founders face a challenging funding landscape</b>.</p><p>The reasons behind this are cultural, structural, and brutally human:</p><ul><li><b>Angel networks are insular</b>: Wealthy Saudi families and UHNWIs dominate early-stage investing, prioritizing social ties over disruptive ideas. &quot;If I fail after taking money from my cousin&#039;s friend, I lose more than capital - I lose reputation,&quot; confessed a fintech founder.</li><li><b>Risk aversion reigns</b>: Investors flock to &quot;safe&quot; sectors like e-commerce and replicas of Western models (think: &quot;Uber for X&quot;), while deep tech and moonshots languish.</li><li><b>Government programs favor scale-ups</b>: Monsha&#039;at&#039;s SME loans require a history of traction and revenue—a Catch-22 for pre-revenue innovators.</li></ul><p>The bar is set very high for early stage founders. One Riyadh-based pre-revenue founder put it bluntly:</p><blockquote>&quot;To raise USD 1M here, you need 10K users and a strong revenue trajectory. In Silicon Valley, you&#039;d get that check with a prototype and a dream.&quot;</blockquote><p>Global founders can sidestep these hurdles by:</p><ol><li><b>Targeting hybrid funding</b>: Pair Saudi grants with global pre-seed funds like Antler, which launched an Riyadh residency program in 2023. Antler runs a word class program that brings top 80 founders globally to spend 10 weeks immersed in the Saudi startup ecosystem. <i>&quot;We back exceptional founding teams, not traction&quot;</i> says <b>Romain Assunção, Partner at Antler</b>.</li><li><b>Building social proo</b>f: Join accelerator demo days (Flat6Labs, Sanabil) to attract local and international angels.</li><li><b>Leaning into government priorities</b>: Align your MVP with Vision 2030 goals (e.g., job creation for Saudis) to unlock soft approvals.</li></ol><p>While early-stage funding gaps persist, Saudi&#039;s government is rewriting the rules—startups that align with Vision 2030 are unlocking unprecedented growth</p><h2><b>Insight #2: &quot;Vision 2030 as a Blueprint: How Saudi Startups Are Cracking the Code to Government-Backed Funding&quot;</b></h2><h3>Saudi Arabia&#039;s $3 trillion economic overhaul isn&#039;t just a plan—it&#039;s a playbook for startups.</h3><p>Vision 2030, Crown Prince Mohammed bin Salman&#039;s flagship strategy to pivot Saudi Arabia from oil dependence to a tech-driven economy, has reshaped the rules of entrepreneurship in the Kingdom. Startups that align with its priorities aren&#039;t just surviving—they&#039;re thriving. But this alignment comes with risks and rewards every founder must weigh.</p><h3>The Vision 2030 Playbook</h3><p>The plan targets <b>13 sectors</b> for transformation, from fintech and renewable energy to tourism and logistics. These sectors are a gateway into government grants, venture capital, and partnerships with entities like the Public Investment Fund (PIF) which holds $700B in assets and drives investment in Giga projects like Neom and the Red Sea project.</p><p>Saudi fintech <b>Tabby</b> became the <b>MENA region&#039;s first fintech unicorn</b> by aligning with Vision 2030&#039;s push for cashless economies. Its $2 billion valuation was fuelled by partnerships with Saudi banks and a customer base primed by government digitalization campaigns.</p><p>Saudi e-commerce enabler <b>Salla</b> exemplifies how startups align with Vision 2030&#039;s digital economy goals. Salla provides SMEs with a SaaS platform to launch online stores, directly supporting the Kingdom&#039;s target to grow its e-commerce market—valued at $20 billion in 2024—by 25% annually. The $130 million pre-IPO funding in 2024, led by Investcorp and Sanabil (a PIF subsidiary), to scale operations ahead of a planned public listing. By simplifying digital commerce, Salla supports the Kingdom&#039;s ambition to position e-commerce as a cornerstone of its $49.5 billion retail market by 2030</p><h3>The Alignment Trap</h3><p>Startups that harmonize Vision 2030 priorities with market needs unlock exponential growth, but founders need to be aware of some common pitfalls:</p><ul><li><b>Market Misalignment</b>: The risk of misalignment exists if founders prioritize government KPIs over market validation. Founders are incentivized to balance vision 2030 goals with scalable and profitable market demands.</li><li><b>Policy Shifts</b>: Vision 2030&#039;s evolving priorities could impact funding flows, but abrupt redirections based on political environment, governmental priorities can impact operations at the company if they are over reliant on the government.</li></ul><p>For global founders, the message is clear: <b>Repurpose your existing solution for Saudi priorities, and the Kingdom will repurpose its checkbook for you</b>. But tread carefully: the startups winning long-term are those solving real problems, not just ticking government boxes.</p><p>As vision 2030 reshapes funding, Founders must also navigate Saudi Arabia&#039;s talent and cultural minefield</p><h2><b>Insight #3: The Balancing Act: Talent Gaps, Red Tape, and Cultural Nuances</b></h2><h3>Saudi Arabia&#039;s startup ecosystem rewards founders who embrace its dynamic, fast-evolving landscape</h3><p>While Vision 2030&#039;s reforms have streamlined sectors like fintech and tourism, scaling in the Kingdom still demands patience and cultural IQ. Here&#039;s what you&#039;re up against:</p><h3>The Talent challenge: &quot;Saudization&quot; vs. Skill Gaps</h3><p>Saudi Arabia&#039;s push to employ its young, tech-savvy population (63% population is under 30) clashes with startups&#039; need for seasoned leaders.</p><p>65% of startups cite &quot;lack of senior tech talent&quot; as their #1 bottleneck, per MAGNiTT&#039;s 2023 report.</p><p>Brain Drain: Engineers and product managers often defect to deep-pocketed giga-projects, which offer salaries 30–50% above startup pay bands.</p><h3>Regulatory Whiplash: Progress with Asterisks</h3><p>Saudi Arabia has slashed setup times for foreign firms from 6 months to 3 days in sectors like fintech—but hurdles persist:</p><ul><li><b>Incorporation</b>: While 100% foreign ownership is now allowed, the logistics of opening a corporation requires significant investment and documentation. Access to startup banking is also quite cumbersome compared to other global startup ecosystems.</li><li><b>Streamlining Progress</b>: A proptech founder shared: &quot;Our license was approved in a week, but connecting utilities took 4 months due to overlapping approvals.&quot;. Reforms have accelerated licensing to days, and ongoing efforts such as Riyadh&#039;s recent digital permitting portal aim to resolve legacy bottlenecks.</li></ul><h3>Cultural Nuances: The Unwritten Rules</h3><p>Saudi Arabia&#039;s business culture blends hyper-modern ambition with deep-rooted traditions:</p><ul><li><b>The Friday Factor</b>: Workweeks run Sunday–Thursday, with Fridays reserved for family and prayer. Scheduling meetings on Fridays is a faux pas.</li><li><b>Gender Dynamic</b>s: While women are actively participating in the startup ecosystem, its very important to be aware of cultural norms both outside and inside the office. For example, most restaurants will offer a segregated family and single sections. Men and women gyms are mostly segregated as well.</li><li><b>Wasta Matters (a lot)</b>: Personal connections accelerate deals. As a global founder, it is critical to find the right connections to be able to have access to the right people in the right places. It&#039;s not about just having loose connections, but investing into those relationships. <i>&quot;You think LinkedIn connects people? In Riyadh, it&#039;s who brings the karak tea to the majlis.&quot;</i>, a founder in logistics space shared with me</li></ul><p>Saudi Arabia&#039;s startup ecosystem is a high-stakes game of chess. The Kingdom provides the board and pieces, but global founders must master the rules before the clock runs out on Vision 2030&#039;s $3 trillion endgame.</p><p><br/></p><p><br/></p><p><br/></p>"
+    }
+  ],
+  "quotes": [
+    {
+      "id": "2b20aff1-c9a9-8154-b91f-d91c4c6da74e",
+      "text": "A healthy man wants a thousand things, a sick man only wants one.",
+      "author": "Confucius"
+    },
+    {
+      "id": "2b20aff1-c9a9-81a8-a537-e864ceaf43f2",
+      "text": "We judge ourselves by our intentions and others by their actions.",
+      "author": "Stephen M.R. Covey"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "books",
+      "title": "Books",
+      "items": [
+        {
+          "id": "3380aff1-c9a9-8193-9e17-d27bef677ad6",
+          "html": "<a href=\"https://www.goodreads.com/book/show/27220736-shoe-dog\" target=\"_blank\" rel=\"noopener noreferrer\">shoe dog</a>, phil knight",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3380aff1-c9a9-8184-bbfa-d82558dba393",
+          "html": "<a href=\"https://www.goodreads.com/book/show/22035859-dream-big\" target=\"_blank\" rel=\"noopener noreferrer\">Dream Big</a>, story of the 3G guys ",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3380aff1-c9a9-81d2-937d-dd778050cb91",
+          "html": "<a href=\"https://www.goodreads.com/book/show/38743564-billion-dollar-whale\" target=\"_blank\" rel=\"noopener noreferrer\">Billion Dollar Whale</a>, page turner on the 1MDB scandal",
+          "attribution": null,
+          "kind": "curated"
+        }
+      ]
+    },
+    {
+      "id": "tools",
+      "title": "Tools",
+      "items": [
+        {
+          "id": "3380aff1-c9a9-81b0-8c7d-f5578b384a5a",
+          "html": "<a href=\"https://wisprflow.ai/r?ADI3=\" target=\"_blank\" rel=\"noopener noreferrer\">wispr flow</a> - voice to text",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3380aff1-c9a9-81da-8a03-f22dcb9a2a67",
+          "html": "<a href=\"https://hyprnote.com/\" target=\"_blank\" rel=\"noopener noreferrer\">hyprnote</a> - granola alternative, on device note taking",
+          "attribution": null,
+          "kind": "curated"
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "Misc",
+      "items": [
+        {
+          "id": "3380aff1-c9a9-814c-9d2f-f7deb5f61ee0",
+          "html": "Will Smith on motivation (when he was controversy free) -<a href=\"https://www.youtube.com/watch?v=doqS35FfcUE\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.youtube.com/watch?v=doqS35FfcUE</a>",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3380aff1-c9a9-810d-a196-c4372bebc9ab",
+          "html": "<a href=\"https://www.gocomics.com/calvinandhobbes\" target=\"_blank\" rel=\"noopener noreferrer\">Calvin and Hobbes</a>",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3380aff1-c9a9-8150-a555-eaf9051e1ff1",
+          "html": "one of the best story teller in the Indian comedy scene: <a href=\"https://www.youtube.com/@manikmahna\" target=\"_blank\" rel=\"noopener noreferrer\">Manik</a> (reminds me of the legend, <a href=\"https://www.youtube.com/watch?v=qKrIvikRyEg\" target=\"_blank\" rel=\"noopener noreferrer\">Norm Macdonald</a>)",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3380aff1-c9a9-811a-85ea-d794938db082",
+          "html": "<a href=\"https://redmond.life/products/re-lyte-hydration?srsltid=AfmBOoohsQ7Q_Y-T0bB-ozkhWo_m9XVVgG3dVk_Ko_UuArYiiXylYt1G&variant=39646809587760\" target=\"_blank\" rel=\"noopener noreferrer\">Electrolytes</a> (lemon lime): accelerates post workout recovery",
+          "attribution": null,
+          "kind": "curated"
+        }
+      ]
+    }
+  ]
+}
