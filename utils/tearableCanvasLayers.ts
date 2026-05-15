@@ -1,7 +1,9 @@
 import * as THREE from 'three';
-import { Quote, RecommendationSection, SectionType, Thought } from '../types';
+import { CanvasCopyItem, ProfileLink, Quote, RecommendationSection, SectionType, Thought } from '../types';
+import { getCanvasText } from './canvasCms';
 import { compactLabel, drawGear, drawRaggedRect, drawSpiral, drawWrappedText, htmlToText, roundedRect, summarize, uniqueAnchors, withAlpha } from './tearableCanvasDrawing';
 import { paintTearableMobileLayer } from './tearableMobileCanvasLayers';
+import { TEARABLE_PALETTES, TearablePalette } from './tearablePalettes';
 
 export const TEAR_TEXTURE_WIDTH = 2048;
 export const TEAR_TEXTURE_HEIGHT = 1152;
@@ -10,6 +12,8 @@ export type TearableInputKey = 'signal' | 'rec';
 export type TearableHitKind = 'link' | 'input' | 'button' | 'thought';
 
 export interface TearableCanvasContent {
+  canvasCopy: CanvasCopyItem[];
+  profileLinks: ProfileLink[];
   aboutHtml: string;
   thoughts: Thought[];
   quotes: Quote[];
@@ -53,49 +57,22 @@ export const TEAR_LAYER_ORDER = [
   SectionType.RECOMMENDATIONS,
 ];
 
-const palettes: Record<SectionType, {
-  bg: string;
-  paper: string;
-  ink: string;
-  muted: string;
-  accent: string;
-  accent2: string;
-  accent3: string;
-}> = {
-  [SectionType.ABOUT]: {
-    bg: '#dedbd2', paper: '#f2ead6', ink: '#14130f', muted: '#6a665c', accent: '#e88468', accent2: '#b8afd9', accent3: '#9fcbbf',
-  },
-  [SectionType.THOUGHTS]: {
-    bg: '#d9dfcc', paper: '#f6ecd4', ink: '#11120e', muted: '#5a604f', accent: '#88a96c', accent2: '#5d92aa', accent3: '#e7a063',
-  },
-  [SectionType.QUOTES]: {
-    bg: '#dbe7df', paper: '#f4ecd7', ink: '#12140f', muted: '#536255', accent: '#d4756c', accent2: '#7e9eb5', accent3: '#c7b36f',
-  },
-  [SectionType.RECOMMENDATIONS]: {
-    bg: '#ead8ca', paper: '#fff1d6', ink: '#14110e', muted: '#6d5549', accent: '#ff8a72', accent2: '#9bb9aa', accent3: '#a799c9',
-  },
-};
-
-const layerLabels: Record<SectionType, { title: [string, string]; subtitle: string; next: string }> = {
+const layerLabels: Record<SectionType, { title: [string, string]; subtitle: string }> = {
   [SectionType.ABOUT]: {
     title: ['hi! I am', 'Adi'],
     subtitle: 'AI products, agent infra, and fun internet experiments.',
-    next: 'work',
   },
   [SectionType.THOUGHTS]: {
     title: ['THOUGHTS', ''],
     subtitle: 'Articles and notes from the notebook.',
-    next: 'quotes',
   },
   [SectionType.QUOTES]: {
     title: ['QUOTES', ''],
     subtitle: '',
-    next: 'recommendation',
   },
   [SectionType.RECOMMENDATIONS]: {
     title: ['RECOMMENDATION', ''],
     subtitle: 'Books, tools, and references I recommend.',
-    next: 'profile',
   },
 };
 
@@ -144,24 +121,22 @@ function paintTearableLayer(
   const g = canvas.getContext('2d');
   if (!g) return [];
   const regions: TearableHitRegion[] = [];
-  const p = palettes[section];
+  const p = TEARABLE_PALETTES[section];
   g.clearRect(0, 0, canvas.width, canvas.height);
   if (state.layout === 'portrait') {
     return paintTearableMobileLayer(canvas, section, content, state);
   }
   drawBase(g, p, section);
-  drawHeader(g, p, section);
+  drawHeader(g, p, section, content);
 
   if (section === SectionType.ABOUT) renderProfile(g, p, content, regions);
-  if (section === SectionType.THOUGHTS) renderThreads(g, p, content, state, regions);
   if (section === SectionType.QUOTES) renderQuotes(g, p, content);
   if (section === SectionType.RECOMMENDATIONS) renderRecs(g, p, content, state, regions);
 
-  drawTearInstructions(g, p);
   return regions;
 }
 
-function drawBase(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], section: SectionType) {
+function drawBase(g: CanvasRenderingContext2D, p: TearablePalette, section: SectionType) {
   const w = TEAR_TEXTURE_WIDTH;
   const h = TEAR_TEXTURE_HEIGHT;
   g.fillStyle = p.bg;
@@ -194,15 +169,22 @@ function drawBase(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.AB
   g.restore();
 
   g.save();
-  g.globalAlpha = 0.18;
+  g.globalAlpha = 0.1;
   g.fillStyle = p.paper;
   g.fillRect(0, 0, w, h);
   g.globalAlpha = 1;
   g.restore();
 }
 
-function drawHeader(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], section: SectionType) {
-  const meta = layerLabels[section];
+function drawHeader(g: CanvasRenderingContext2D, p: TearablePalette, section: SectionType, content: TearableCanvasContent) {
+  const fallback = layerLabels[section];
+  const meta = {
+    title: [
+      getCanvasText(content.canvasCopy, section, 'hero_line_1', fallback.title[0]),
+      getCanvasText(content.canvasCopy, section, 'hero_line_2', fallback.title[1]),
+    ],
+    subtitle: getCanvasText(content.canvasCopy, section, 'subtitle', fallback.subtitle),
+  };
   const isLongRecommendationTitle = section === SectionType.RECOMMENDATIONS;
   const titleSize = isLongRecommendationTitle ? 124 : 150;
   const titleX = isLongRecommendationTitle ? 150 : 185;
@@ -226,10 +208,12 @@ function drawHeader(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.
   g.restore();
 }
 
-function renderProfile(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent, regions: TearableHitRegion[]) {
-  const links = uniqueAnchors(content.aboutHtml).slice(0, 10);
-  const intro = 'I’m Adi. I build AI products, agent infrastructure, and fun little internet experiments.';
-  const profileSummary = 'Currently building Watercooler. Previously founded Koan Analytics and worked on product ops at DiDi.';
+function renderProfile(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent, regions: TearableHitRegion[]) {
+  const links = content.profileLinks.length
+    ? content.profileLinks.map((link) => ({ label: link.label, href: link.url })).slice(0, 10)
+    : uniqueAnchors(content.aboutHtml).slice(0, 10);
+  const intro = getCanvasText(content.canvasCopy, SectionType.ABOUT, 'profile_intro', 'I’m Adi. I build AI products, agent infrastructure, and fun little internet experiments.');
+  const profileSummary = getCanvasText(content.canvasCopy, SectionType.ABOUT, 'profile_summary', 'Currently building Watercooler. Previously founded Koan Analytics and worked on product ops at DiDi.');
   card(g, 190, 650, 810, 350, p, 'PROFILE');
   g.font = '800 36px "Bricolage Grotesque", sans-serif';
   g.fillStyle = p.ink;
@@ -251,43 +235,7 @@ function renderProfile(g: CanvasRenderingContext2D, p: typeof palettes[SectionTy
   }
 }
 
-function renderThreads(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent, state: TearableCanvasState, regions: TearableHitRegion[]) {
-  const selected = content.thoughts.find((thought) => thought.id === state.selectedThoughtId) ?? null;
-  if (selected) {
-    card(g, 190, 650, 1290, 350, p, 'THOUGHT');
-    regions.push({ id: 'thread-back', kind: 'button', action: 'back-thread', x: 1500, y: 670, width: 230, height: 62 });
-    drawButton(g, 1500, 670, 230, 'BACK TO THOUGHTS', p);
-    g.font = '800 46px "Bricolage Grotesque", sans-serif';
-    g.fillStyle = p.ink;
-    drawWrappedText(g, selected.title, 230, 750, 840, 54, 2);
-    g.font = '700 25px "Bricolage Grotesque", sans-serif';
-    g.fillStyle = withAlpha(p.ink, 0.72);
-    drawWrappedText(g, htmlToText(selected.content), 230, 860, 1170, 35, 5);
-    return;
-  }
-
-  card(g, 190, 640, 1640, 390, p, 'ARTICLE INDEX');
-  content.thoughts.slice(0, 4).forEach((thought, index) => {
-    const col = index % 2;
-    const row = Math.floor(index / 2);
-    const x = 230 + col * 790;
-    const y = 710 + row * 150;
-    g.fillStyle = index % 2 === 0 ? withAlpha(p.accent3, 0.25) : withAlpha(p.accent2, 0.22);
-    roundedRect(g, x, y, 720, 120, 22, true, false);
-    g.strokeStyle = withAlpha(p.ink, 0.16);
-    g.lineWidth = 3;
-    roundedRect(g, x, y, 720, 120, 22, false, true);
-    g.font = '800 29px "Bricolage Grotesque", sans-serif';
-    g.fillStyle = p.ink;
-    drawWrappedText(g, thought.title, x + 28, y + 42, 560, 34, 1);
-    g.font = '700 18px "Azeret Mono", monospace';
-    g.fillStyle = withAlpha(p.ink, 0.52);
-    g.fillText(thought.date || 'thread', x + 28, y + 92);
-    regions.push({ id: `thought-${thought.id}`, kind: 'thought', thoughtId: thought.id, x, y, width: 720, height: 120 });
-  });
-}
-
-function renderQuotes(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent) {
+function renderQuotes(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent) {
   const quotes = content.quotes.filter((quote) => quote.text.trim());
   if (!quotes.length) {
     g.font = '800 40px "Bricolage Grotesque", sans-serif';
@@ -371,7 +319,7 @@ function renderQuotes(g: CanvasRenderingContext2D, p: typeof palettes[SectionTyp
   });
 }
 
-function renderRecs(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent, _state: TearableCanvasState, regions: TearableHitRegion[]) {
+function renderRecs(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent, _state: TearableCanvasState, regions: TearableHitRegion[]) {
   const sections = content.recommendations.filter((section) => section.items.length).slice(0, 4);
   card(g, 190, 640, 1650, 390, p, '');
 
@@ -392,24 +340,17 @@ function renderRecs(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.
     section.items.slice(0, 5).forEach((item, itemIndex) => {
       const itemY = 775 + itemIndex * 50;
       const anchor = uniqueAnchors(item.html)[0];
-      const label = summarize(htmlToText(item.html), Math.max(36, Math.floor(textWidth / 8)));
+      const href = item.url || anchor?.href;
+      const label = summarize(item.label || htmlToText(item.html), Math.max(36, Math.floor(textWidth / 8)));
       g.font = '700 23px "Bricolage Grotesque", sans-serif';
-      g.fillStyle = anchor ? p.ink : withAlpha(p.ink, 0.74);
+      g.fillStyle = href ? p.ink : withAlpha(p.ink, 0.74);
       drawWrappedText(g, label, x, itemY, textWidth, 27, 1);
-      if (anchor) regions.push({ id: `rec-link-${section.id}-${itemIndex}`, kind: 'link', href: anchor.href, x, y: itemY - 26, width: textWidth, height: 42 });
+      if (href) regions.push({ id: `rec-link-${section.id}-${itemIndex}`, kind: 'link', href, x, y: itemY - 26, width: textWidth, height: 42 });
     });
   });
 }
 
-function drawTearInstructions(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT]) {
-  g.save();
-  g.font = '800 33px "Bricolage Grotesque", sans-serif';
-  g.fillStyle = withAlpha(p.ink, 0.62);
-  g.fillText('Tear the page to navigate. Press R to reset.', 185, 1100);
-  g.restore();
-}
-
-function card(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, p: typeof palettes[SectionType.ABOUT], label: string) {
+function card(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, p: TearablePalette, label: string) {
   g.save();
   g.shadowColor = 'rgba(20,18,14,0.20)';
   g.shadowBlur = 30;
@@ -428,30 +369,7 @@ function card(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: n
   g.restore();
 }
 
-function drawInput(g: CanvasRenderingContext2D, x: number, y: number, w: number, text: string, focused: boolean, p: typeof palettes[SectionType.ABOUT]) {
-  g.save();
-  g.fillStyle = focused ? 'rgba(255,255,255,0.92)' : 'rgba(255,248,232,0.68)';
-  roundedRect(g, x, y, w, 78, 24, true, false);
-  g.strokeStyle = focused ? p.accent : withAlpha(p.ink, 0.28);
-  g.lineWidth = focused ? 6 : 4;
-  roundedRect(g, x, y, w, 78, 24, false, true);
-  g.font = '800 30px "Bricolage Grotesque", sans-serif';
-  g.fillStyle = text.includes('...') ? withAlpha(p.ink, 0.42) : p.ink;
-  g.fillText(text.slice(0, 28), x + 28, y + 50);
-  g.restore();
-}
-
-function drawButton(g: CanvasRenderingContext2D, x: number, y: number, w: number, label: string, p: typeof palettes[SectionType.ABOUT]) {
-  g.save();
-  g.fillStyle = p.ink;
-  roundedRect(g, x, y, w, 62, 999, true, false);
-  g.fillStyle = '#fff6dd';
-  g.font = '900 21px "Azeret Mono", monospace';
-  g.fillText(label, x + 30, y + 40);
-  g.restore();
-}
-
-function drawLinkPill(g: CanvasRenderingContext2D, x: number, y: number, w: number, label: string, p: typeof palettes[SectionType.ABOUT]) {
+function drawLinkPill(g: CanvasRenderingContext2D, x: number, y: number, w: number, label: string, p: TearablePalette) {
   g.fillStyle = 'rgba(255,255,255,0.64)';
   roundedRect(g, x, y, w, 54, 999, true, false);
   g.strokeStyle = p.accent;

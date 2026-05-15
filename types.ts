@@ -34,6 +34,9 @@ export interface Quote {
 export interface RecommendationItem {
   id: string;
   html: string;
+  label?: string;
+  description?: string | null;
+  url?: string | null;
   attribution?: string | null;
   kind: string;
 }
@@ -44,6 +47,26 @@ export interface RecommendationSection {
   items: RecommendationItem[];
 }
 
+export interface CanvasCopyItem {
+  id: string;
+  layer: SectionType;
+  slot: string;
+  text: string;
+  url?: string | null;
+  sortOrder: number;
+  maxCharacters?: number | null;
+  status?: string;
+}
+
+export interface ProfileLink {
+  id: string;
+  label: string;
+  url: string;
+  sortOrder: number;
+  maxCharacters?: number | null;
+  status?: string;
+}
+
 export interface OutlineItem {
   id: string;
   label: string;
@@ -52,6 +75,8 @@ export interface OutlineItem {
 
 export interface SiteContentSnapshot {
   generatedAt: string;
+  canvasCopy: CanvasCopyItem[];
+  profileLinks: ProfileLink[];
   aboutHtml: string;
   craftsHtml: string;
   thoughts: Thought[];

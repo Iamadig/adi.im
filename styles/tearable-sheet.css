@@ -144,6 +144,29 @@
     pointer-events: none;
   }
 
+  .tearable-page-hint {
+    position: fixed;
+    z-index: 70;
+    left: clamp(24px, 8vw, 150px);
+    bottom: calc(env(safe-area-inset-bottom) + 16px);
+    margin: 0;
+    color: rgba(20, 18, 14, 0.66);
+    font: 800 clamp(18px, 2vw, 33px) "Bricolage Grotesque", sans-serif;
+    line-height: 1;
+    pointer-events: none;
+    text-shadow: 0 2px 0 rgba(255, 248, 232, 0.58);
+    user-select: none;
+  }
+
+  @media (max-width: 720px) {
+    .tearable-page-hint {
+      right: 18px;
+      left: 18px;
+      bottom: calc(env(safe-area-inset-bottom) + 10px);
+      font-size: clamp(15px, 4.8vw, 22px);
+    }
+  }
+
   .tearable-thoughts-overlay {
     position: fixed;
     left: clamp(28px, 8.8vw, 190px);
@@ -165,8 +188,8 @@
     border: 3px solid rgba(17, 17, 15, 0.27);
     border-radius: 27px 19px 31px 22px;
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 243, 214, 0.86)),
-      rgba(255, 248, 232, 0.96);
+      linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 243, 214, 0.98)),
+      #fff8e8;
     box-shadow: 0 13px 0 rgba(17, 17, 15, 0.10), 0 28px 60px rgba(38, 35, 28, 0.22);
     backdrop-filter: blur(10px);
   }

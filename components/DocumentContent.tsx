@@ -26,6 +26,8 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({
 }) => {
   const {
     aboutHtml,
+    canvasCopy,
+    profileLinks,
     recommendations,
     thoughts,
     quotes,
@@ -60,7 +62,7 @@ const DocumentContentComponent: React.FC<DocumentContentProps> = ({
     );
   }
 
-  const tearableContent = { aboutHtml, thoughts, quotes, recommendations, generatedAt };
+  const tearableContent = { canvasCopy, profileLinks, aboutHtml, thoughts, quotes, recommendations, generatedAt };
   return (
     <>
       <LayeredTearableSite activeSection={activeSection} content={tearableContent} onRevealSection={onRevealSection} />

@@ -1,4 +1,5 @@
 import { SectionType } from '../types';
+import { getCanvasText } from './canvasCms';
 import {
   compactLabel,
   drawGear,
@@ -12,34 +13,12 @@ import {
   withAlpha,
 } from './tearableCanvasDrawing';
 import type { TearableCanvasContent, TearableCanvasState, TearableHitRegion } from './tearableCanvasLayers';
+import { TEARABLE_PALETTES, TearablePalette } from './tearablePalettes';
 
 const W = 2048;
 const H = 1152;
 const STRIP_X = 760;
 const STRIP_W = 560;
-
-const palettes: Record<SectionType, {
-  bg: string;
-  paper: string;
-  ink: string;
-  muted: string;
-  accent: string;
-  accent2: string;
-  accent3: string;
-}> = {
-  [SectionType.ABOUT]: {
-    bg: '#dedbd2', paper: '#f2ead6', ink: '#14130f', muted: '#6a665c', accent: '#e88468', accent2: '#b8afd9', accent3: '#9fcbbf',
-  },
-  [SectionType.THOUGHTS]: {
-    bg: '#d9dfcc', paper: '#f6ecd4', ink: '#11120e', muted: '#5a604f', accent: '#88a96c', accent2: '#5d92aa', accent3: '#e7a063',
-  },
-  [SectionType.QUOTES]: {
-    bg: '#dbe7df', paper: '#f4ecd7', ink: '#12140f', muted: '#536255', accent: '#d4756c', accent2: '#7e9eb5', accent3: '#c7b36f',
-  },
-  [SectionType.RECOMMENDATIONS]: {
-    bg: '#ead8ca', paper: '#fff1d6', ink: '#14110e', muted: '#6d5549', accent: '#ff8a72', accent2: '#9bb9aa', accent3: '#a799c9',
-  },
-};
 
 const labels: Record<SectionType, { title: string; note: string }> = {
   [SectionType.ABOUT]: {
@@ -68,25 +47,20 @@ export function paintTearableMobileLayer(
 ) {
   const g = canvas.getContext('2d');
   if (!g) return [];
-  const p = palettes[section];
+  const p = TEARABLE_PALETTES[section];
   const regions: TearableHitRegion[] = [];
   drawMobileBase(g, p, section);
-  drawMobileHeader(g, p, section);
+  drawMobileHeader(g, p, section, content);
 
   if (section === SectionType.ABOUT) renderMobileProfile(g, p, content, regions);
   if (section === SectionType.THOUGHTS) renderMobileThoughts(g, p, content, state, regions);
   if (section === SectionType.QUOTES) renderMobileQuotes(g, p, content);
   if (section === SectionType.RECOMMENDATIONS) renderMobileRecs(g, p, content, regions);
 
-  g.save();
-  g.font = '800 27px "Bricolage Grotesque", sans-serif';
-  g.fillStyle = withAlpha(p.ink, 0.58);
-  drawWrappedText(g, 'Tear to navigate. Press R to reset.', STRIP_X + 20, 1124, STRIP_W - 40, 32, 1);
-  g.restore();
   return regions;
 }
 
-function drawMobileBase(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], section: SectionType) {
+function drawMobileBase(g: CanvasRenderingContext2D, p: TearablePalette, section: SectionType) {
   g.fillStyle = p.bg;
   g.fillRect(0, 0, W, H);
   const wash = g.createRadialGradient(W * 0.5, H * 0.4, 80, W * 0.5, H * 0.5, W * 0.5);
@@ -110,14 +84,19 @@ function drawMobileBase(g: CanvasRenderingContext2D, p: typeof palettes[SectionT
     g.lineTo(W, y + Math.sin(y * 0.03) * 5);
     g.stroke();
   }
-  g.globalAlpha = 0.18;
+  g.globalAlpha = 0.1;
   g.fillStyle = p.paper;
   g.fillRect(0, 0, W, H);
   g.globalAlpha = 1;
 }
 
-function drawMobileHeader(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], section: SectionType) {
-  const meta = labels[section];
+function drawMobileHeader(g: CanvasRenderingContext2D, p: TearablePalette, section: SectionType, content: TearableCanvasContent) {
+  const fallback = labels[section];
+  const meta = {
+    title: getCanvasText(content.canvasCopy, section, 'hero_line_1', fallback.title),
+    title2: getCanvasText(content.canvasCopy, section, 'hero_line_2', ''),
+    note: getCanvasText(content.canvasCopy, section, 'subtitle', fallback.note),
+  };
   const titleSize = section === SectionType.THOUGHTS ? 70 : section === SectionType.QUOTES ? 82 : section === SectionType.RECOMMENDATIONS ? 70 : 86;
   g.save();
   g.font = `400 ${titleSize}px "Special Gothic Expanded One", sans-serif`;
@@ -125,8 +104,8 @@ function drawMobileHeader(g: CanvasRenderingContext2D, p: typeof palettes[Sectio
   g.strokeStyle = 'rgba(255,248,232,0.78)';
   g.fillStyle = withAlpha(p.ink, 0.9);
   if (section === SectionType.ABOUT) {
-    g.fillText('hi! I am', STRIP_X + 22, 190);
-    g.fillText('Adi', STRIP_X + 22, 284);
+    g.fillText(meta.title, STRIP_X + 22, 190);
+    if (meta.title2) g.fillText(meta.title2, STRIP_X + 22, 284);
   } else {
     drawFittedTitle(g, meta.title, STRIP_X + 22, 190, STRIP_W - 44, titleSize);
   }
@@ -148,7 +127,7 @@ function drawFittedTitle(g: CanvasRenderingContext2D, text: string, x: number, y
   g.fillText(text, x, y);
 }
 
-function mobileCard(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, p: typeof palettes[SectionType.ABOUT], label: string) {
+function mobileCard(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, p: TearablePalette, label: string) {
   g.save();
   g.shadowColor = 'rgba(20,18,14,0.18)';
   g.shadowBlur = 24;
@@ -165,17 +144,19 @@ function mobileCard(g: CanvasRenderingContext2D, x: number, y: number, w: number
   g.restore();
 }
 
-function renderMobileProfile(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent, regions: TearableHitRegion[]) {
+function renderMobileProfile(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent, regions: TearableHitRegion[]) {
   mobileCard(g, STRIP_X + 22, 450, STRIP_W - 44, 290, p, 'PROFILE');
   g.font = '800 34px "Bricolage Grotesque", sans-serif';
   g.fillStyle = p.ink;
-  drawWrappedText(g, 'I build AI products, agent infrastructure, and fun little internet experiments.', STRIP_X + 50, 525, STRIP_W - 100, 40, 4);
+  drawWrappedText(g, getCanvasText(content.canvasCopy, SectionType.ABOUT, 'profile_intro', 'I build AI products, agent infrastructure, and fun little internet experiments.'), STRIP_X + 50, 525, STRIP_W - 100, 40, 4);
   g.font = '700 24px "Bricolage Grotesque", sans-serif';
   g.fillStyle = withAlpha(p.ink, 0.72);
-  drawWrappedText(g, 'Currently building Watercooler. Previously founded Koan Analytics and worked on product ops at DiDi.', STRIP_X + 50, 670, STRIP_W - 100, 31, 3);
+  drawWrappedText(g, getCanvasText(content.canvasCopy, SectionType.ABOUT, 'profile_summary', 'Currently building Watercooler. Previously founded Koan Analytics and worked on product ops at DiDi.'), STRIP_X + 50, 670, STRIP_W - 100, 31, 3);
 
   mobileCard(g, STRIP_X + 22, 750, STRIP_W - 44, 335, p, 'LINKS');
-  const links = uniqueAnchors(content.aboutHtml).slice(0, 8);
+  const links = content.profileLinks.length
+    ? content.profileLinks.map((link) => ({ label: link.label, href: link.url })).slice(0, 8)
+    : uniqueAnchors(content.aboutHtml).slice(0, 8);
   let x = STRIP_X + 50;
   let y = 815;
   for (const link of links) {
@@ -191,17 +172,16 @@ function renderMobileProfile(g: CanvasRenderingContext2D, p: typeof palettes[Sec
   }
 }
 
-function renderMobileThoughts(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent, state: TearableCanvasState, regions: TearableHitRegion[]) {
+function renderMobileThoughts(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent, state: TearableCanvasState, regions: TearableHitRegion[]) {
+  void g;
+  void p;
   void content;
   void state;
   void regions;
-  g.save();
-  g.globalAlpha = 0.22;
-  drawRaggedRect(g, STRIP_X + 10, 510, STRIP_W - 20, 470, p.paper, -1, 0.38);
-  g.restore();
+  // Thoughts content is rendered as a DOM reader above the canvas.
 }
 
-function renderMobileQuotes(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent) {
+function renderMobileQuotes(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent) {
   const quotes = content.quotes.filter((quote) => quote.text.trim()).slice(0, 6);
   if (!quotes.length) return;
   quotes.forEach((quote, index) => {
@@ -219,7 +199,7 @@ function renderMobileQuotes(g: CanvasRenderingContext2D, p: typeof palettes[Sect
   });
 }
 
-function renderMobileRecs(g: CanvasRenderingContext2D, p: typeof palettes[SectionType.ABOUT], content: TearableCanvasContent, regions: TearableHitRegion[]) {
+function renderMobileRecs(g: CanvasRenderingContext2D, p: TearablePalette, content: TearableCanvasContent, regions: TearableHitRegion[]) {
   mobileCard(g, STRIP_X + 22, 455, STRIP_W - 44, 580, p, 'RECOMMENDATION');
   content.recommendations.filter((section) => section.items.length).slice(0, 4).forEach((section, sectionIndex) => {
     const y = 520 + sectionIndex * 120;
@@ -229,7 +209,7 @@ function renderMobileRecs(g: CanvasRenderingContext2D, p: typeof palettes[Sectio
     section.items.slice(0, 2).forEach((item, itemIndex) => {
       const itemY = y + 42 + itemIndex * 36;
       const anchor = uniqueAnchors(item.html)[0];
-      const label = summarize(htmlToText(item.html), 34);
+      const label = summarize(item.label || htmlToText(item.html), 34);
       g.font = '700 23px "Bricolage Grotesque", sans-serif';
       g.fillStyle = anchor ? p.ink : withAlpha(p.ink, 0.72);
       drawWrappedText(g, label, STRIP_X + 58, itemY, STRIP_W - 120, 27, 1);
@@ -238,7 +218,7 @@ function renderMobileRecs(g: CanvasRenderingContext2D, p: typeof palettes[Sectio
   });
 }
 
-function drawPill(g: CanvasRenderingContext2D, x: number, y: number, w: number, label: string, p: typeof palettes[SectionType.ABOUT]) {
+function drawPill(g: CanvasRenderingContext2D, x: number, y: number, w: number, label: string, p: TearablePalette) {
   g.fillStyle = 'rgba(255,255,255,0.64)';
   roundedRect(g, x, y, w, 50, 999, true, false);
   g.strokeStyle = p.accent;

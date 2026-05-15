@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:api": "tsx watch server.ts",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
+    "content:create-cms": "tsx scripts/create-canvas-cms.ts",
     "content:sync": "tsx scripts/sync-content.ts",
     "content:publish": "npm run build && git status --short",
     "build": "npm run content:sync && vite build",

@@ -2,7 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
 import { Client } from '@notionhq/client';
+import { DEFAULT_CANVAS_COPY } from '../utils/canvasCms';
 import { normalizeAboutHtml } from '../utils/siteCopy';
+import { CanvasCopyItem, SectionType } from '../types';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -45,6 +47,10 @@ function sanitizeUrl(rawUrl?: string | null): string | null {
   }
 
   return null;
+}
+
+function stripHtml(value = ''): string {
+  return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function richTextToHtml(richText: RichText = []): string {
@@ -214,50 +220,166 @@ function getPlainText(parts?: any[]): string {
   return (parts ?? []).map((entry) => entry.plain_text ?? '').join('').trim();
 }
 
-async function buildSnapshot() {
-  const notion = new Client({ auth: process.env.NOTION_KEY });
+function getStatusName(props: any): string {
+  return props.Status?.status?.name || props.Status?.select?.name || '';
+}
 
-  const aboutHtml = normalizeAboutHtml(await getPageHtml(notion, process.env.NOTION_ABOUT_PAGE!));
+function isPublished(props: any): boolean {
+  const status = getStatusName(props).toLowerCase();
+  return !status || status === 'published' || status === 'done';
+}
 
-  const thoughtPages = await queryAllDatabase(notion, {
-    database_id: process.env.NOTION_THOUGHTS_DB!,
+function mapLayer(value?: string): SectionType | null {
+  const normalized = (value ?? '').toLowerCase();
+  if (normalized === 'about' || normalized === 'about me') return SectionType.ABOUT;
+  if (normalized === 'thoughts') return SectionType.THOUGHTS;
+  if (normalized === 'quotes') return SectionType.QUOTES;
+  if (normalized === 'recommendations' || normalized === 'recommendation') return SectionType.RECOMMENDATIONS;
+  return null;
+}
+
+function getTitle(props: any, fallback = 'Untitled'): string {
+  return getPlainText(props.Title?.title) || getPlainText(props.Name?.title) || fallback;
+}
+
+function linkedHtml(label: string, url?: string | null): string {
+  return url
+    ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`
+    : escapeHtml(label);
+}
+
+function extractLinksFromHtml(html: string) {
+  return dedupeLinks(Array.from(html.matchAll(/<a[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>/g)).map((match, index) => ({
+    id: `about-link-${index + 1}`,
+    label: stripHtml(match[2]).trim(),
+    url: match[1],
+    sortOrder: index + 1,
+    maxCharacters: 18,
+    status: 'Published',
+  })).filter((link) => link.label && sanitizeUrl(link.url)));
+}
+
+function dedupeLinks<T extends { url: string; label: string }>(links: T[]): T[] {
+  const seen = new Set<string>();
+  return links.filter((link) => {
+    const key = sanitizeUrl(link.url) || `${link.label}:${link.url}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function getCanvasCopy(notion: Client): Promise<CanvasCopyItem[]> {
+  const databaseId = process.env.NOTION_CANVAS_COPY_DB;
+  if (!databaseId) return DEFAULT_CANVAS_COPY;
+
+  const pages = await queryAllDatabase(notion, {
+    database_id: databaseId,
+    sorts: [{ property: 'Sort Order', direction: 'ascending' }],
+  });
+
+  const copy = pages
+    .filter((page: any) => isPublished(page.properties))
+    .map((page: any) => {
+      const props = page.properties;
+      const layer = mapLayer(props.Layer?.select?.name);
+      const slot = props.Slot?.select?.name || getPlainText(props.Slot?.rich_text);
+      const text = getPlainText(props.Text?.rich_text) || getTitle(props, '');
+      if (!layer || !slot || !text) return null;
+
+      return {
+        id: page.id,
+        layer,
+        slot,
+        text,
+        url: sanitizeUrl(props.URL?.url),
+        sortOrder: props['Sort Order']?.number ?? 0,
+        maxCharacters: props['Max Characters']?.number ?? null,
+        status: getStatusName(props) || 'Published',
+      } satisfies CanvasCopyItem;
+    })
+    .filter(Boolean) as CanvasCopyItem[];
+
+  return copy.length ? copy : DEFAULT_CANVAS_COPY;
+}
+
+async function getThoughts(notion: Client) {
+  const databaseId = process.env.NOTION_CANVAS_THOUGHTS_DB || process.env.NOTION_THOUGHTS_DB!;
+  const pages = await queryAllDatabase(notion, {
+    database_id: databaseId,
     sorts: [{ property: 'Date', direction: 'descending' }],
   });
 
-  const thoughts = await Promise.all(thoughtPages.map(async (page: any) => {
-    return {
-      id: page.id,
-      title: page.properties.Title?.title?.[0]?.plain_text || page.properties.Name?.title?.[0]?.plain_text || 'Untitled',
-      date: page.properties.Date?.date?.start || new Date().toISOString().slice(0, 10),
-      tags: page.properties.Tags?.multi_select?.map((tag: any) => tag.name) || [],
-      description: getPlainText(page.properties.Description?.rich_text),
-      content: await processBlocks(await listAllBlockChildren(notion, page.id), notion),
-    };
-  }));
+  return Promise.all(pages.filter((page: any) => isPublished(page.properties)).map(async (page: any) => ({
+    id: page.id,
+    title: getTitle(page.properties),
+    date: page.properties.Date?.date?.start || new Date().toISOString().slice(0, 10),
+    tags: page.properties.Tags?.multi_select?.map((tag: any) => tag.name) || [],
+    description: getPlainText(page.properties.Description?.rich_text),
+    content: await processBlocks(await listAllBlockChildren(notion, page.id), notion),
+  })));
+}
 
-  const quotePages = await queryAllDatabase(notion, {
-    database_id: process.env.NOTION_QUOTES_DB!,
+async function getQuotes(notion: Client) {
+  const databaseId = process.env.NOTION_CANVAS_QUOTES_DB || process.env.NOTION_QUOTES_DB!;
+  const params: Record<string, any> = {
+    database_id: databaseId,
+  };
+  if (process.env.NOTION_CANVAS_QUOTES_DB) {
+    params.sorts = [{ property: 'Sort Order', direction: 'ascending' }];
+  }
+  const pages = await queryAllDatabase(notion, params);
+
+  return pages
+    .filter((page: any) => isPublished(page.properties))
+    .map((page: any) => ({
+      id: page.id,
+      text: getPlainText(page.properties.Quote?.title) || getTitle(page.properties, ''),
+      author: getPlainText(page.properties.Author?.rich_text) || 'Unknown',
+    }))
+    .filter((quote) => quote.text);
+}
+
+async function getProfileLinks(notion: Client, aboutHtml: string) {
+  const databaseId = process.env.NOTION_CANVAS_LINKS_DB;
+  if (!databaseId) return extractLinksFromHtml(aboutHtml);
+
+  const pages = await queryAllDatabase(notion, {
+    database_id: databaseId,
+    sorts: [{ property: 'Sort Order', direction: 'ascending' }],
   });
 
-  const quotes = quotePages.map((page: any) => ({
-    id: page.id,
-    text: getPlainText(page.properties.Quote?.title),
-    author: getPlainText(page.properties.Author?.rich_text) || 'Unknown',
-  })).filter((quote) => quote.text);
+  const links = pages
+    .filter((page: any) => isPublished(page.properties))
+    .map((page: any) => ({
+      id: page.id,
+      label: getPlainText(page.properties.Label?.title) || getPlainText(page.properties.Name?.title),
+      url: sanitizeUrl(page.properties.URL?.url) || '',
+      sortOrder: page.properties['Sort Order']?.number ?? 0,
+      maxCharacters: page.properties['Max Characters']?.number ?? null,
+      status: getStatusName(page.properties) || 'Published',
+    }))
+    .filter((link) => link.label && link.url);
+
+  return links.length ? dedupeLinks(links) : extractLinksFromHtml(aboutHtml);
+}
+
+async function buildSnapshot() {
+  const notion = new Client({ auth: process.env.NOTION_KEY });
+
+  const canvasCopy = await getCanvasCopy(notion);
+  const aboutHtml = normalizeAboutHtml(await getPageHtml(notion, process.env.NOTION_ABOUT_PAGE!));
+  const profileLinks = await getProfileLinks(notion, aboutHtml);
+  const thoughts = await getThoughts(notion);
+  const quotes = await getQuotes(notion);
 
   const recPages = await queryAllDatabase(notion, {
-    database_id: process.env.NOTION_RECOMMENDATIONS_DB!,
+    database_id: process.env.NOTION_CANVAS_RECOMMENDATIONS_DB || process.env.NOTION_RECOMMENDATIONS_DB!,
     sorts: [
       { property: 'Category', direction: 'ascending' },
       { property: 'Sort Order', direction: 'ascending' },
       { property: 'Name', direction: 'ascending' },
     ],
-    filter: {
-      property: 'Status',
-      status: {
-        equals: 'Done',
-      },
-    },
   });
 
   const sectionLabels: Record<string, string> = {
@@ -270,25 +392,20 @@ async function buildSnapshot() {
     movies: 'Movies',
   };
 
-  const sectionMap = new Map<string, { id: string; title: string; items: Array<{ id: string; html: string; attribution?: string | null; kind: string }> }>();
+  const sectionMap = new Map<string, { id: string; title: string; items: Array<{ id: string; html: string; label: string; description?: string | null; url?: string | null; attribution?: string | null; kind: string }> }>();
 
   for (const page of recPages) {
     const props = page.properties;
+    if (!isPublished(props)) continue;
     const category = props.Category?.select?.name || 'misc';
-    const title = props.Name?.title?.[0]?.plain_text || 'Untitled';
+    const title = getTitle(props);
+    const displayLabel = getPlainText(props['Display Label']?.rich_text) || getPlainText(props.Display?.rich_text) || title;
+    const descriptor = getPlainText(props['Short Descriptor']?.rich_text) || getPlainText(props.Notes?.rich_text) || null;
     const display = richTextToHtml(props.Display?.rich_text as RichText);
-    const notes = richTextToHtml(props.Notes?.rich_text as RichText);
     const attribution = getPlainText(props.Attribution?.rich_text) || null;
     const url = sanitizeUrl(props.URL?.url || props['URL']?.url || props['userDefined:URL']?.url);
     const kind = props.Kind?.select?.name || 'curated';
-
-    let html = display;
-    if (!html) {
-      const linkedTitle = url
-        ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>`
-        : escapeHtml(title);
-      html = notes ? `${linkedTitle}${title !== getPlainText(props.Notes?.rich_text) ? `, ${notes}` : ''}` : linkedTitle;
-    }
+    const html = display || linkedHtml(displayLabel, url);
 
     if (!sectionMap.has(category)) {
       sectionMap.set(category, {
@@ -301,6 +418,9 @@ async function buildSnapshot() {
     sectionMap.get(category)!.items.push({
       id: page.id,
       html,
+      label: displayLabel,
+      description: descriptor,
+      url,
       attribution,
       kind,
     });
@@ -308,6 +428,8 @@ async function buildSnapshot() {
 
   return {
     generatedAt: new Date().toISOString(),
+    canvasCopy,
+    profileLinks,
     aboutHtml,
     craftsHtml: '',
     thoughts,

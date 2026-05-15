@@ -16,7 +16,7 @@ import {
   getNextTearSection,
   repaintTearableLayer,
 } from '../utils/tearableCanvasLayers';
-const DROP_TEAR_PROGRESS = 0.0065, DROP_ALIVE_FRACTION = 0.968, DROP_TEAR_WORK = 8.8, PRE_DROP_HOLD = 0.5, MAX_PASSIVE_LAYERS = 3, RELEASE_SETTLE_MAX = 3.1, RELEASE_SETTLE_MIN = 0.55, SETTLE_AVG_SPEED = 0.0016, SETTLE_MAX_SPEED = 0.01;
+const DROP_TEAR_PROGRESS = 0.0065, DROP_ALIVE_FRACTION = 0.968, DROP_TEAR_WORK = 8.8, PRE_DROP_HOLD = 0.78, POST_DROP_IMPULSE = 0.008, MAX_PASSIVE_LAYERS = 3, RELEASE_SETTLE_MAX = 3.1, RELEASE_SETTLE_MIN = 0.55, SETTLE_AVG_SPEED = 0.0016, SETTLE_MAX_SPEED = 0.01;
 type TearDebugWindow = Window & { __tearState?: () => unknown };
 interface LayeredTearableSiteProps { activeSection: SectionType; content: TearableCanvasContent; onRevealSection?: (section: SectionType) => void; }
 const initialCanvasState: TearableCanvasState = { layout: 'landscape', focusedInput: null, signalInput: '', recInput: '', selectedThoughtId: null, pulledSignal: null, queuedRec: null };
@@ -69,6 +69,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
     let hoveredRegion: TearableHitRegion | null = null;
     let tearArmed = false;
     let dropStarted = false;
+    let dropSnapshotCreated = false;
     let dropStartedAt = 0, advanceCooldown = 0, settleStartedAt = 0, settleUntil = 0, tearWork = 0;
     let advancing = false;
     let phase: TearPhase = 'idle';
@@ -83,6 +84,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
     const backMesh = new THREE.Mesh(backGeometry, backMaterial);
     backMesh.position.z = -0.34;
     backMesh.receiveShadow = true;
+    backMesh.visible = false;
     scene.add(backMesh);
     const ambient = new THREE.AmbientLight(0xffffff, 1.45);
     scene.add(ambient);
@@ -252,6 +254,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       hoveredRegion = null;
       tearArmed = false;
       dropStarted = false;
+      dropSnapshotCreated = false;
       dropStartedAt = 0;
       settleStartedAt = 0;
       settleUntil = 0;
@@ -281,16 +284,19 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       clearInteractionState();
       onRevealRef.current?.(currentSection);
     }
+    function addFallingSheet() {
+      passives.push(snapshotPassive(cloth, activeRender.texture, scene, POST_DROP_IMPULSE));
+      while (passives.length > MAX_PASSIVE_LAYERS) {
+        const oldest = passives.shift();
+        if (oldest) disposePassive(oldest, scene);
+      }
+    }
     function advance() {
       if (advancing) return;
       advancing = true;
       const next = getNextTearSection(currentSection);
       phase = 'advancing';
-      passives.push(snapshotPassive(cloth, activeRender.texture, scene, 0.42));
-      while (passives.length > MAX_PASSIVE_LAYERS) {
-        const oldest = passives.shift();
-        if (oldest) disposePassive(oldest, scene);
-      }
+      if (!dropSnapshotCreated) addFallingSheet();
       activeRender = backRender;
       currentSection = next;
       backRender = createRenderFor(getNextTearSection(currentSection));
@@ -304,6 +310,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       backMaterial.needsUpdate = true;
       pointerRegion = null; tearArmed = false; mouse.down = false; mouse.active = false; releaseGrab(cloth);
       dropStarted = false;
+      dropSnapshotCreated = false;
       dropStartedAt = 0; settleStartedAt = 0; settleUntil = 0; tearWork = 0;
       advanceCooldown = 1.0;
       phase = 'idle';
@@ -321,6 +328,10 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
         mouse.down = false;
         releaseTopEdge(cloth);
         dropStarted = true;
+        if (!dropSnapshotCreated) {
+          addFallingSheet();
+          dropSnapshotCreated = true;
+        }
         dropStartedAt = elapsed;
         phase = 'dropping';
       }
@@ -416,7 +427,8 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
       last = now;
       elapsed += dt;
-      if (activeSectionRef.current !== currentSection && !mouse.down && passives.length === 0) {
+      if (activeSectionRef.current !== currentSection && !mouse.down) {
+        passives.splice(0).forEach((passive) => disposePassive(passive, scene));
         currentSection = activeSectionRef.current;
         disposeRender(activeRender);
         disposeRender(backRender);
@@ -428,6 +440,12 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
         resetCloth(cloth);
         releaseGrab(cloth);
         rebuildIndex(geometry, cloth);
+        commitGeometry(geometry, cloth);
+        material.map = activeRender.texture;
+        backMaterial.map = backRender.texture;
+        material.needsUpdate = true;
+        backMaterial.needsUpdate = true;
+        clearInteractionState();
         phase = 'idle';
       }
       const settling = phase === 'torn' && elapsed < settleUntil, settleAge = settling ? elapsed - settleStartedAt : 0;
@@ -448,6 +466,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
           passives.splice(i, 1);
         }
       }
+      backMesh.visible = mouse.down || dropStarted || phase === 'dragging' || phase === 'dropping' || phase === 'torn';
       renderer.render(scene, camera);
       raf = requestAnimationFrame(tick);
     }

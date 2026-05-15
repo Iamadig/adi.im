@@ -21,7 +21,7 @@ const TEAR_RATIO = 4.0;
 const ITERATIONS = 2;
 const FRICTION = 0.978;
 const GRAVITY = -0.0009;
-const PASSIVE_GRAVITY = -0.014;
+const PASSIVE_GRAVITY = -0.00075;
 const GRAB_RADIUS = 0.52;
 const GRAB_STRENGTH = 0.58;
 
@@ -334,8 +334,9 @@ export function snapshotPassive(source: ClothData, texture: THREE.Texture, scene
   const geometry = createGeometry(cloth);
   const material = createPaperMaterial(texture, true);
   material.opacity = PASSIVE_START_OPACITY;
+  material.depthWrite = false;
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.z = 0.18;
+  mesh.position.z = 0.22;
   scene.add(mesh);
   return { cloth, geometry, material, mesh, texture, age: 0 };
 }
@@ -356,7 +357,7 @@ export function stepPassive(passive: PassiveCloth, dt: number) {
     cloth.prev[i3 + 2] = z;
     cloth.positions[i3] = x + (x - px) * 0.99;
     cloth.positions[i3 + 1] = y + (y - py) * 0.99 + PASSIVE_GRAVITY;
-    cloth.positions[i3 + 2] = z + (z - pz) * 0.99 + 0.006;
+    cloth.positions[i3 + 2] = Math.min(0.08, z + (z - pz) * 0.99 + 0.0012);
   }
   relaxConstraints(cloth, 6, false);
   commitGeometry(passive.geometry, cloth);

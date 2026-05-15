@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getSiteContentSnapshot } from '../services/notion';
 import { normalizeAboutHtml } from '../utils/siteCopy';
-import { Quote, RecommendationSection, SiteContentSnapshot, Thought } from '../types';
+import { CanvasCopyItem, ProfileLink, Quote, RecommendationSection, SiteContentSnapshot, Thought } from '../types';
+import { DEFAULT_CANVAS_COPY } from '../utils/canvasCms';
 
 export function useSiteContentState() {
   const [aboutHtml, setAboutHtml] = useState('');
+  const [canvasCopy, setCanvasCopy] = useState<CanvasCopyItem[]>(DEFAULT_CANVAS_COPY);
+  const [profileLinks, setProfileLinks] = useState<ProfileLink[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendationSection[]>([]);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -21,6 +24,8 @@ export function useSiteContentState() {
           return;
         }
 
+        setCanvasCopy(snapshot.canvasCopy?.length ? snapshot.canvasCopy : DEFAULT_CANVAS_COPY);
+        setProfileLinks(snapshot.profileLinks ?? []);
         setAboutHtml(normalizeAboutHtml(snapshot.aboutHtml));
         setRecommendations(snapshot.recommendations);
         setThoughts(snapshot.thoughts);
@@ -47,6 +52,10 @@ export function useSiteContentState() {
   return {
     aboutHtml,
     setAboutHtml,
+    canvasCopy,
+    setCanvasCopy,
+    profileLinks,
+    setProfileLinks,
     recommendations,
     setRecommendations,
     thoughts,

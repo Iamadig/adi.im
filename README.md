@@ -30,6 +30,12 @@ NOTION_ABOUT_PAGE=your_about_page_id
 NOTION_THOUGHTS_DB=your_thoughts_database_id
 NOTION_QUOTES_DB=your_quotes_database_id
 NOTION_RECOMMENDATIONS_DB=your_recommendations_database_id
+NOTION_CANVAS_CMS_PAGE=your_canvas_cms_page_id
+NOTION_CANVAS_COPY_DB=your_canvas_copy_database_id
+NOTION_CANVAS_LINKS_DB=your_canvas_profile_links_database_id
+NOTION_CANVAS_THOUGHTS_DB=your_canvas_thoughts_database_id
+NOTION_CANVAS_QUOTES_DB=your_canvas_quotes_database_id
+NOTION_CANVAS_RECOMMENDATIONS_DB=your_canvas_recommendations_database_id
 OPENAI_API_KEY=your_openai_api_key
 GEMINI_API_KEY=your_gemini_api_key
 ```
@@ -88,6 +94,32 @@ Vercel will automatically:
 
 ## Setup Guides
 
+### Tearable Canvas CMS
+
+This site now uses a canvas-specific Notion CMS instead of forcing old long-form pages into fixed canvas slots.
+
+Create or recreate the CMS with:
+
+```bash
+npm run content:create-cms
+```
+
+The script creates a Notion page called `Adi Website Canvas CMS`, seeds it from the current content snapshot, and appends the `NOTION_CANVAS_*` database IDs to `.env.local`.
+
+The CMS contains:
+- `Canvas Copy` for short canvas slots such as hero lines, subtitles, profile intro, and footer
+- `Profile Links` for About-page link pills
+- `Thoughts` for article metadata and article body
+- `Quotes` for quote text and attribution
+- `Recommendations` for short public recommendation labels
+
+Each database includes character guidance:
+- `Max Characters` or field-specific max columns
+- `Character Count`
+- `Canvas Fit`, which says `OK` or shows how many characters need to be cut
+
+Only rows with `Status = Published` are rendered publicly.
+
 ### Notion Setup
 
 See [setup-guide.md](./docs/setup-guide.md) for detailed instructions on:
@@ -117,7 +149,9 @@ npm run content:sync
 
 `npm run build` runs this automatically.
 
-Public profile copy is intentionally curated in `content/site-content.curated.json`. The sync script still reads Notion, then applies this curated file so the personal-site narrative does not get overwritten by stale CMS content.
+If the `NOTION_CANVAS_*` variables are present, the sync script reads the new canvas CMS. If they are absent, it falls back to the legacy Notion sources.
+
+Public profile HTML can still be curated in `content/site-content.curated.json`, but the visible canvas copy should be edited in the Notion `Canvas Copy` database.
 
 For the normal content-edit workflow:
 
