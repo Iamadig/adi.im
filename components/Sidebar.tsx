@@ -1,75 +1,114 @@
 import React from 'react';
-import { NavItem, SectionType } from '../types';
+import { CheckCircle2, FileText, FolderGit2, GitBranch, Plus, X } from 'lucide-react';
 import { NAV_ITEMS } from '../constants';
-import { AlignLeft, X } from 'lucide-react';
+import { OutlineItem, SectionType } from '../types';
 
 interface SidebarProps {
   activeSection: SectionType;
   onNavigate: (section: SectionType) => void;
   isOpen: boolean;
   onClose: () => void;
+  outlineItems: OutlineItem[];
+  activeOutlineId: string | null;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, isOpen, onClose }) => {
-  // Mobile Drawer Classes
-  const mobileClasses = `fixed inset-y-0 left-0 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`;
-  
-  // Desktop Classes (Fixed position next to content)
-  const desktopClasses = `md:translate-x-0 md:shadow-none md:bg-transparent md:w-[240px] md:fixed md:left-0 md:top-[112px] md:bottom-0 md:z-10`;
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeSection,
+  onNavigate,
+  isOpen,
+  onClose,
+  outlineItems,
+  activeOutlineId,
+}) => {
+  const mobileClasses = `fixed inset-y-0 left-0 z-50 w-[288px] transform transition-transform duration-200 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`;
+  const desktopClasses = 'md:fixed md:bottom-0 md:left-0 md:top-[53px] md:z-10 md:w-[280px] md:translate-x-0';
 
   return (
     <>
-        {/* Mobile Backdrop */}
-        {isOpen && (
-            <div 
-                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
-                onClick={onClose}
-            />
-        )}
+      {isOpen && <div className="fixed inset-0 z-40 bg-black/45 md:hidden" onClick={onClose} />}
 
-        <div className={`flex flex-col overflow-y-auto select-none ${mobileClasses} ${desktopClasses}`}>
-        
-        {/* Mobile Header for Sidebar */}
-        <div className="flex items-center justify-between md:hidden px-6 py-4 border-b border-gray-100">
-             <h2 className="font-bold text-gray-700">Document Outline</h2>
-             <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full text-gray-500">
-                 <X size={20} />
-             </button>
+      <aside className={`codex-sidebar flex flex-col overflow-y-auto select-none ${mobileClasses} ${desktopClasses}`}>
+        <div className="flex items-center justify-between border-b border-codex-border px-4 py-3">
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold text-codex-ink">adi.im</div>
+            <div className="truncate font-mono text-[11px] text-codex-faint">personal site</div>
+          </div>
+          <button onClick={onClose} className="codex-icon-button md:hidden" aria-label="Close navigation">
+            <X size={17} />
+          </button>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 px-6 mb-3 group cursor-pointer opacity-70 hover:opacity-100 transition-opacity pt-2">
-            <AlignLeft size={18} className="text-gray-500" />
-            <h2 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Summary</h2>
+        <div className="border-b border-codex-border px-3 py-3">
+          <button className="codex-new-task-button" type="button">
+            <Plus size={15} />
+            Contact Adi
+          </button>
         </div>
 
-        <nav className="flex flex-col py-2 md:py-0">
+        <div className="px-3 py-3">
+          <div className="codex-sidebar-label"><FolderGit2 size={13} /> Sections</div>
+          <nav className="space-y-1">
             {NAV_ITEMS.map((item) => {
-                const isActive = activeSection === item.id;
+              const isActive = activeSection === item.id;
+              const Icon = item.icon ?? FileText;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onNavigate(item.id);
+                    onClose();
+                  }}
+                  className={`codex-nav-item ${isActive ? 'codex-nav-item-active' : ''}`}
+                >
+                  <Icon size={15} />
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  <CheckCircle2 size={13} className="text-codex-success" />
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="border-t border-codex-border px-3 py-3">
+          <div className="codex-sidebar-label"><GitBranch size={13} /> Outline</div>
+          {outlineItems.length === 0 ? (
+            <p className="px-2 py-2 text-xs leading-relaxed text-codex-faint">
+              Open a thought to populate the outline.
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {outlineItems.map((item) => {
+                const isItemActive = activeOutlineId === item.id;
                 return (
-                <button 
+                  <button
                     key={item.id}
                     onClick={() => {
-                        onNavigate(item.id);
-                        onClose(); // Close sidebar on mobile selection
+                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      onClose();
                     }}
-                    className={`
-                        group relative flex items-center text-left pl-6 pr-4 py-2 md:py-1.5 text-[13px] transition-colors duration-150
-                        ${isActive 
-                            ? 'text-docs-blue font-bold bg-blue-50 md:bg-transparent' 
-                            : 'text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 md:rounded-r-full md:mr-4'}
-                    `}
-                >
-                    {/* Active Indicator Line */}
-                    {isActive && (
-                        <span className="absolute left-0 top-0 bottom-0 md:top-1 md:bottom-1 w-[3px] bg-docs-blue md:rounded-r-sm"></span>
-                    )}
-                    
+                    className={`codex-outline-item ${isItemActive ? 'codex-outline-item-active' : ''} ${
+                      item.level === 1 ? 'pl-3' : item.level === 2 ? 'pl-5' : 'pl-7'
+                    }`}
+                  >
                     <span className="truncate">{item.label}</span>
-                </button>
-                )
-            })}
-        </nav>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        <div className="mt-auto border-t border-codex-border p-3">
+          <div className="codex-sidebar-label">About this site</div>
+          <div className="codex-repo-card">
+            <div className="flex items-center gap-2 text-codex-ink">
+              <GitBranch size={14} />
+              <span>tearable personal site</span>
+            </div>
+            <p>Personal profile. The tear interaction is navigation; the content is the point.</p>
+          </div>
+        </div>
+      </aside>
     </>
   );
 };

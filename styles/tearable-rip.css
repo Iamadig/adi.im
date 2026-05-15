@@ -1,0 +1,70 @@
+@layer components {
+  .tearable-physics-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    overflow: hidden;
+    border-radius: 0;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .tearable-physics-stage:active {
+    cursor: grabbing;
+  }
+
+  .tearable-physics-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    outline: none;
+  }
+
+  .tearable-dom-hero {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tearable-physics-stage:empty {
+    pointer-events: none;
+  }
+
+  .tearable-physics-stage:empty + .tearable-dom-hero {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .tearable-layer-shell::after {
+    position: absolute;
+    inset: 20px 20px 124px;
+    z-index: 6;
+    border: 2px solid rgba(17, 17, 15, 0.24);
+    border-radius: 26px 18px 31px 22px;
+    box-shadow: 0 22px 45px rgba(38, 35, 28, 0.18);
+    content: "";
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tearable-physics-stage {
+      display: none;
+    }
+
+    .tearable-dom-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .tearable-layer-shell::after {
+      display: none;
+    }
+  }
+}

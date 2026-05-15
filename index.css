@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Special+Gothic+Expanded+One&family=Azeret+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-codex-bg: #d8d6d1;
+  --color-codex-ink: #11110f;
+  --color-codex-muted: #55534e;
+  --color-codex-faint: #7e7b73;
+  --color-codex-panel: rgba(247, 244, 235, 0.76);
+  --color-codex-panel-strong: rgba(255, 252, 242, 0.94);
+  --color-codex-elevated: #fff8e8;
+  --color-codex-border: rgba(17, 17, 15, 0.16);
+  --color-codex-line: rgba(17, 17, 15, 0.24);
+  --color-codex-accent: #11110f;
+  --color-codex-accent-strong: #000000;
+  --color-codex-success: #247553;
+  --color-codex-green: #247553;
+  --color-codex-warn: #a5602c;
+  --color-docs-gray: #e8e0d1;
+  --color-docs-blue: #11110f;
+  --color-docs-blue-hover: #000000;
+  --color-docs-blue-bg: rgba(17, 17, 15, 0.07);
+  --color-docs-text: #11110f;
+  --color-docs-text-light: #55534e;
+  --font-sans: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  --font-mono: "Azeret Mono", "Courier New", monospace;
+  --shadow-page: 0 28px 80px rgba(38, 35, 28, 0.22);
+}
+
+@layer base {
+  html,
+  body {
+    background: #d8d6d1;
+  }
+
+  body {
+    min-width: 320px;
+    margin: 0;
+    overflow-y: hidden;
+    color: var(--color-codex-ink);
+    font-family: var(--font-sans);
+  }
+
+  button,
+  textarea,
+  input {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgba(232, 132, 104, 0.34);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: rgba(17, 17, 15, 0.34);
+    background-clip: content-box;
+  }
+}

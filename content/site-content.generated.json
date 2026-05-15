@@ -1,0 +1,362 @@
+{
+  "generatedAt": "2026-05-15T00:16:53.828Z",
+  "canvasCopy": [
+    {
+      "id": "3600aff1-c9a9-814c-97a6-cef3a8d43a23",
+      "layer": "Recommendations",
+      "slot": "hero_line_1",
+      "text": "RECOMMENDATION",
+      "url": null,
+      "sortOrder": 10,
+      "maxCharacters": 16,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8188-afb9-ef07fede45b5",
+      "layer": "Quotes",
+      "slot": "hero_line_1",
+      "text": "QUOTES",
+      "url": null,
+      "sortOrder": 10,
+      "maxCharacters": 16,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-817f-8b93-ce9fe2cd9a43",
+      "layer": "Thoughts",
+      "slot": "hero_line_1",
+      "text": "THOUGHTS",
+      "url": null,
+      "sortOrder": 10,
+      "maxCharacters": 16,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8142-bcd5-d7e7a8647e0f",
+      "layer": "About Me",
+      "slot": "hero_line_1",
+      "text": "hi! I am",
+      "url": null,
+      "sortOrder": 10,
+      "maxCharacters": 16,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8124-956c-fe61f33dc6a0",
+      "layer": "Recommendations",
+      "slot": "subtitle",
+      "text": "Books, tools, and references I recommend.",
+      "url": null,
+      "sortOrder": 20,
+      "maxCharacters": 80,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8129-8274-f2503187255b",
+      "layer": "Thoughts",
+      "slot": "subtitle",
+      "text": "Articles and notes from the notebook.",
+      "url": null,
+      "sortOrder": 20,
+      "maxCharacters": 80,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-81a1-800b-c7708e03621a",
+      "layer": "About Me",
+      "slot": "hero_line_2",
+      "text": "Adi",
+      "url": null,
+      "sortOrder": 20,
+      "maxCharacters": 16,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-813d-b95a-ecc6ab0059ee",
+      "layer": "About Me",
+      "slot": "subtitle",
+      "text": "AI products, agent infra, and fun internet experiments.",
+      "url": null,
+      "sortOrder": 30,
+      "maxCharacters": 80,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-818f-b573-c1d032069d92",
+      "layer": "About Me",
+      "slot": "profile_intro",
+      "text": "I’m Adi. I build AI products, agent infrastructure, and fun little internet experiments.",
+      "url": null,
+      "sortOrder": 40,
+      "maxCharacters": 140,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-818c-a271-d8f3ecfefb2a",
+      "layer": "About Me",
+      "slot": "profile_summary",
+      "text": "Currently building Watercooler. Previously founded Koan Analytics and worked on product ops at DiDi.",
+      "url": null,
+      "sortOrder": 50,
+      "maxCharacters": 170,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-81ea-abe7-d8bc761e67b3",
+      "layer": "About Me",
+      "slot": "footer",
+      "text": "Tear the page to navigate. Press R to reset.",
+      "url": null,
+      "sortOrder": 90,
+      "maxCharacters": 60,
+      "status": "Published"
+    }
+  ],
+  "profileLinks": [
+    {
+      "id": "3600aff1-c9a9-81f9-8d04-ff9827a1d77c",
+      "label": "Watercooler",
+      "url": "http://watercoolerdev.com/",
+      "sortOrder": 1,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-815e-9450-daf485eb6754",
+      "label": "Koan Analytics",
+      "url": "https://www.mining-technology.com/contractors/data/koan-analytics/",
+      "sortOrder": 2,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-812b-ad8b-c78ff599663e",
+      "label": "DiDi",
+      "url": "https://web.didiglobal.com/au/",
+      "sortOrder": 3,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-815d-ba12-d15a87cbd776",
+      "label": "x / twitter",
+      "url": "https://x.com/IamAdiG",
+      "sortOrder": 4,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-810e-af9c-fd038ccafd2f",
+      "label": "linkedin",
+      "url": "https://www.linkedin.com/in/adityag123/",
+      "sortOrder": 5,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8177-9e56-e4d3adaf0f6d",
+      "label": "MakeMyClaw",
+      "url": "https://x.com/twistartups/status/2027547963980190070",
+      "sortOrder": 5,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-81b2-ab02-f679d89df762",
+      "label": "github",
+      "url": "https://github.com/Iamadig",
+      "sortOrder": 6,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8101-9055-ce0c771a0292",
+      "label": "email",
+      "url": "mailto:adi@watercoolerdev.com",
+      "sortOrder": 7,
+      "maxCharacters": 18,
+      "status": "Published"
+    },
+    {
+      "id": "3600aff1-c9a9-8170-8b5b-d282f81d6c74",
+      "label": "LearnFromLenny",
+      "url": "https://x.com/learnfromlenny",
+      "sortOrder": 8,
+      "maxCharacters": 18,
+      "status": "Published"
+    }
+  ],
+  "aboutHtml": "<p>I’m Adi. I build AI products, agent infrastructure, and fun little internet experiments.</p><p>Currently I’m building <a href=\"http://watercoolerdev.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Watercooler</a>, a coordination surface and memory layer for coding agents.</p><p>Previously, I founded <a href=\"https://www.mining-technology.com/contractors/data/koan-analytics/\" target=\"_blank\" rel=\"noopener noreferrer\">Koan Analytics</a>, an AI platform for mineral exploration, and worked on product operations at <a href=\"https://web.didiglobal.com/au/\" target=\"_blank\" rel=\"noopener noreferrer\">DiDi</a>.</p><p><b>selected work</b></p><ul><li><a href=\"http://watercoolerdev.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Watercooler</a> - coordination and memory systems for coding agents.</li><li><a href=\"http://makemyclaw.com/\" target=\"_blank\" rel=\"noopener noreferrer\">MakeMyClaw</a> - one-click deploy infrastructure for OpenClaw and Hermes agents.</li><li><a href=\"https://x.com/learnfromlenny\" target=\"_blank\" rel=\"noopener noreferrer\">LearnFromLenny</a> - an X agent that answers with Lenny Rachitsky’s product corpus.</li><li><a href=\"http://moltipedia.ai/\" target=\"_blank\" rel=\"noopener noreferrer\">Moltipedia</a> - a playful experiment in agent-written knowledge systems.</li></ul><p><b>find me</b></p><ul><li><a href=\"mailto:adi@watercoolerdev.com\" target=\"_blank\" rel=\"noopener noreferrer\">email</a></li><li><a href=\"https://x.com/IamAdiG\" target=\"_blank\" rel=\"noopener noreferrer\">x / twitter</a></li><li><a href=\"https://www.linkedin.com/in/adityag123/\" target=\"_blank\" rel=\"noopener noreferrer\">linkedin</a></li><li><a href=\"https://github.com/Iamadig\" target=\"_blank\" rel=\"noopener noreferrer\">github</a></li></ul>",
+  "craftsHtml": "",
+  "thoughts": [
+    {
+      "id": "3600aff1-c9a9-8130-b741-ffc9480c164b",
+      "title": "Teams don’t have a code problem anymore. They have a coordination problem.",
+      "date": "2026-04-20",
+      "tags": [],
+      "description": "The bottleneck changed A few years ago, the bottleneck was writing code. Now code is faster. Trying things is faster.",
+      "content": "<h2>The bottleneck changed</h2><p>A few years ago, the bottleneck was writing code.</p><p>Now code is faster.</p><p>Trying things is faster.</p><p>Parallel work is faster.</p><p>That sounds like pure speed.</p><p>It isn’t.</p><p>Because as execution gets cheaper, coordination gets more expensive.</p><p>That is the shift I keep seeing.</p><h2>The slowdown is no longer just “can we build this?”</h2><h2>It is</h2><p>What already got tried?</p><p>What did we decide?</p><p>Why did we decide it?</p><p>What is still unresolved?</p><p>Who is waiting on what next?</p><p>That is where teams lose time now.</p><h2>The new failure mode</h2><p>2 humans.</p><p>3 agents.</p><p>1 repo</p><p>One agent fixes something.</p><p>Another starts from stale context.</p><p>A reviewer sees the code, but not the reasoning behind it.</p><p>The next session repeats work that already happened.</p><p>Nobody is blocked on typing.</p><p>They are blocked on reconstructing context.</p><p>And that happens constantly.</p><p>“Didn’t we already solve this?”</p><p>“Why did we choose this approach?”</p><p>“Was this intentional or just a quick patch?”</p><p>“Who was supposed to pick this up next?”</p><p>That is the drag.</p><p>Not code generation.</p><p>Not raw execution.</p><p>Context reconstruction.</p><h2>Why Git is not enough</h2><p>Git is still one of the best tools we have.</p><p>But Git solves a narrower problem than the one teams are now running into.</p><p>Git remembers what changed.</p><p>It does not reliably preserve why.</p><p>You can inspect the diff.</p><p>You can inspect the commit.</p><p>You can inspect the history.</p><p>What you usually cannot recover quickly is the reasoning around the change:</p><h2>why this path won</h2><h2>what alternatives were considered</h2><h2>what uncertainty remained</h2><h2>what was meant to happen next</h2><p>That context exists for a moment.</p><p>Then it disappears into chat, PR comments, docs, or somebody’s head.</p><p>So every new session starts with archaeology.</p><h2>AI makes this worse</h2><p>AI is very good at accelerating execution.</p><p>It helps teams write, test, and iterate faster.</p><p>What it does not do on its own is preserve shared understanding.</p><p>It does not create durable project memory.</p><p>It does not guarantee that the next human or agent inherits the right context.</p><p>It does not turn local decisions into team continuity.</p><p>So teams get more output, but not always more momentum.</p><p>That is the trap.</p><p>It feels like work is moving fast.</p><p>But the gains get eaten by repeated context loss.</p><p>More code.</p><p>More attempts.</p><p>More changes.</p><p>And then the same questions again.</p><h2>The real question now</h2><h2>For a long time, the main question was</h2><p>How do we write code faster?</p><h2>I think the better question now is</h2><p>How do we preserve context well enough that the next session can actually continue?</p><p>How do we keep decisions, handoffs, rationale, and unresolved questions attached to the work?</p><p>How do we stop rebuilding shared understanding from fragments?</p><p>That is the problem we built Watercooler around.</p><h2>What Watercooler is for</h2><p>Watercooler is our attempt to keep shared project memory with the repository:</p><p>decisions</p><p>handoffs</p><p>thread history</p><h2>the reasoning that usually gets lost between sessions</h2><p>The idea is simple.</p><p>When the next human or agent shows up, they should be able to continue from the real state of the work.</p><p>Not from guesswork.</p><p>Not from archaeology.</p><p>Not from whatever someone happens to remember.</p><p>If your team is already working across multiple humans, multiple agents, and one codebase, this problem is already here.</p><p>Repo: <a href=\"https://github.com/mostlyharmless-ai/watercooler\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/mostlyharmless-ai/watercooler</a></p><p>Website: <a href=\"https://www.watercoolerdev.com/\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.watercoolerdev.com/</a></p>"
+    },
+    {
+      "id": "3600aff1-c9a9-816b-9ec6-fd5dac5ddfe0",
+      "title": "developers optimize for control. builders optimize for velocity.",
+      "date": "2026-02-18",
+      "tags": [],
+      "description": "Replit is for builders who optimize for speed most developers optimize for control. builders should optimize for velocity. those are different games. control optimizes for theoretical scale. velocity optimizes for learni",
+      "content": "<h2>Replit is for builders who optimize for speed</h2><p>most developers optimize for control. builders should optimize for velocity.</p><p>those are different games.</p><p>control optimizes for theoretical scale. velocity optimizes for learning speed.</p><p>that is why replit wins for builders.</p><p>not because it replaces cloud infrastructure. not because it is infinitely customizable.</p><p>because it compresses loops. and loop compression is leverage.</p><h2>the hidden tax: seams</h2><p>every time your stack crosses a boundary, you pay.</p><p>environment → deploy</p><p>backend → database</p><p>auth →frontend</p><p>local → production</p><h2>each boundary introduces</h2><ul><li>configuration</li><li>coordination</li><li>context switching</li><li>failure modes</li></ul><p>individually it is small but collectively it adds up</p><p>Building in silos costs more than you think—every boundary slows you down</p><h2>the only metric that matters: loop length</h2><p>as a builder, the only metric that matters to me is how quickly I can go from a thought to feedback.</p><p>thought → code → preview → deploy →feedback</p><p>replit shortens this path aggressively</p><p>my replit workflow</p><p>1. plan mode</p><p>i outline scope, database structure, and feature breakdown inside the same environment where the app will live.</p><p>this done by going back and forth with replit agent in the plan mode</p><p>2. design mode</p><p>once i have a plan in place, i switch to design mode.</p><p>i like to think UI first so it makes it easier for me to see a prototype and iterate on that rather than just having it in my head</p><p>3. build mode</p><p>once i am happy with the output of the design mode, i ask the replit agent to scaffold the app.</p><p>it handles: environment setup, dependencies, configuration</p><p>absolutely zero cognitive load at my end. no docker friction, no package mismatch - nothing!</p><p>4. auth and stripe without side quests</p><p>auth integrates directly. stripe integrates natively.</p><p>the database wiring is handled inside the same system. billing and authentication do not become infrastructure projects.</p><p>they become features that are seamlessly implemented</p><p>5. database without anxiety</p><p>there is clear separation between development and production databases.</p><p>no manual juggling or accidental production damage</p><p>complexity is abstracted away without removing control</p><p>6. branch management is super straightforward</p><p>the branch you select in the git tab is the branch that previews and publishes. no ci scripting required.</p><p>select branch → preview → publish.</p><p>7. sync model: local &lt;-&gt; github &lt;-&gt; replit</p><p>Pick your speed: swap between the integrated agent, SSH, or local workflows as your project evolves</p><p>the beauty of using this setup is that I can decide how i want to keep building the app once its up and running</p><p>for more complex workflows, I sync  local &lt;-&gt; github &lt;-&gt; replit</p><p>for me  this is where replit proves that it is more than a vibe coding tool</p><h2>you can move between</h2><ul><li>Direct replit agent builds</li><li>SSH based edits</li><li>Robust local testing</li><li>Structured git workflows</li></ul><p>You choose speed level depending on the task you are trying to accomplish.</p><h2>closing thoughts</h2><p>the best tool for a builder is not the most powerful; it’s the one that removes the most friction per iteration. replit is about compression, not just convenience: less surface area, fewer seams, shorter loops, lower decision load.</p><p>developers may optimize for control. builders who care about velocity should optimize for loop length. those are different games.</p>"
+    },
+    {
+      "id": "3600aff1-c9a9-8117-bae0-cbdcd11d981a",
+      "title": "You don’t need a $1000 mac mini for clawdbot",
+      "date": "2026-01-23",
+      "tags": [],
+      "description": "$5 a month is enough to run Clawdbot 24x 7 and here is exactly how to do it why cant i just run it on my laptop? yes, you absolutely can. The only challenge is that when you turn your laptop off or close the screen, it g",
+      "content": "<p>$5 a month is enough to run Clawdbot 24x 7 and here is exactly how to do it</p><p>why cant i just run it on my laptop?</p><p>yes, you absolutely can.</p><p>The only challenge is that when you turn your laptop off or close the screen, it goes to sleep and Clawdbot stops working.</p><p>If you want it running all the time without babysitting your machine, a small server is the easiest solution.</p><h2>here is a very simple setup to get it up and running in under 15 mins</h2><h2>TLdr</h2><p>get an account on: <a href=\"https://www.hetzner.com/\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.hetzner.com/</a></p><p>download Tailscale app</p><p>let your ai coding agent (claude, codex) set everything for you</p><p>done</p><h2>Step 1. Get a $5 server on Hetzner</h2><p>Go to Hetzner Cloud and create a server.</p><h2>Pick</h2><p>Ubuntu 22.04</p><p>Any region near you</p><h2>The cheapest plan with 2 to 4 GB RAM</h2><p>That is enough to run Clawdbot comfortably. Leave everything else as default.</p><h2>Step 2. Tailscale</h2><p>install tailscale on your computer from: <a href=\"https://tailscale.com/\" target=\"_blank\" rel=\"noopener noreferrer\">https://tailscale.com/</a></p><p>after installation, signup on tailscale.</p><h2>You will use the same Tailscale account on</h2><p>Your Mac</p><p>Your remote server on Hetzner</p><p>this will give you a private network between your devices and the server on hetzner</p><h2>Step 3. Let your AI coding agent do the work</h2><p>First, let your AI coding agent know that it needs to access the server on Hetzner and install Tailscale</p><p>Get the IP of your private server from Hetzner&#039;s dahsboard and tell your AI coding agent:</p><p>&quot; SSH into this Hetzner server and install Tailscale with the same credentials I am using on this machine. Here is the IP of the Hetzner server: &lt;paste-your ip&gt;&quot;</p><p>lets it do its magic.</p><h2>once its setup ask it to the following</h2><p>&quot;SSH into the Hetzner server and install clawdbot and keep it running. Clawdbot link: <a href=\"https://github.com/clawdbot/clawdbot%22\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/clawdbot/clawdbot&quot;</a></p><h2>the agent will</h2><p>Connect to the server</p><h2>Install dependencies</h2><p>Set up Clawdbot</p><h2>Start the process</h2><p>You just review and approve.</p><h2>Step 4: done :)</h2><p>At this point, Clawdbot is running 24x7 on a $5 server.</p><p>Close your laptop.</p><p>Restart your machine.</p><p>Nothing breaks.</p><p>Optional fun stuff: use the server like a Mac</p><p>i like to visually access my server, just like i do with my mac</p><p>navigate your remote server like you do your mac (with a screen and all)</p><p>because the Hetzner server lives in the cloud, it does not come with a screen by default.</p><p>ask  your AI agent:&quot;  SSH into the server and install VNC and give me address to access it&quot;</p><p>you aregent will give you an address like: vnc://xx.xx</p><p>after your agent does its magic, you can now access your server via mac&#039;s inbuilt screen sharing feature</p><p>then you go to: Finder -&gt; Go -&gt; connect to server</p><p>copy paste the vnc://xx.xx address that your coding agent gave you and voila, you can now access your remote server like you do your mac.</p><p>Hetzner server via mac&#039;s inbuilt screen sharing feature</p><p>thats it! you are done</p><p>your bot is running 24 X 7. Now go on configure it with whatever you want - telegram, whatsaspp, slack...</p>"
+    },
+    {
+      "id": "3600aff1-c9a9-8166-9d3d-fe19b798ec1b",
+      "title": "how to run your clawdbot 24 x 7 for < $5",
+      "date": "2026-01-09",
+      "tags": [],
+      "description": "If you want Clawdbot running 24/7 on your own server in the cloud and not your laptop , this guide walks you through the simplest reliable setup. You just need basic comfort with SSH and copy paste. follow this guide you",
+      "content": "<p>If you want Clawdbot running 24/7 on your own server in the cloud and not your laptop , this guide walks you through the simplest reliable setup.</p><p>You just need basic comfort with SSH and copy paste.</p><p>follow this guide yourself or give to your agent to follow :)</p><p>What are we doing, in simple terms?</p><h2>We are going to</h2><p>Rent a small computer on the internet</p><h2>Install a tool called Docker that runs apps safely</h2><h2>Start Clawdbot inside Docker</h2><p>Make sure Clawdbot remembers everything even after restarts</p><h2>Open Clawdbot from your laptop using a web page</h2><p>When we are done, Clawdbot will run 24/7, even if you close your laptop.</p><h2>What you need before starting</h2><h2>You need just a few things</h2><p>A Hetzner account (from Hetzner com)</p><p>A small Linux server created in Hetzner (chose the first option they show you during account creation for &lt;$5)</p><p>A computer with a terminal (Mac, Linux, or Windows with WSL)</p><p>About 20 minutes</p><p>That is all.</p><h2>Step 1: Connect to your server</h2><p>Your server is a remote computer.</p><p>You connect to it using a command called ssh.</p><h2>On your laptop, run</h2><p>ssh root@YOUR_SERVER_IP (you will get this IP from Hetzner)</p><p>After this, you are typing commands on the server, not your laptop.</p><h2>Step 2: Install Docker (this runs the app safely)</h2><p>Docker is a tool that runs apps in a clean, isolated box.</p><h2>Install it by copying this exactly</h2><p>apt-get update</p><p>apt-get install -y git curl ca-certificates</p><p>curl -fsSL <a href=\"https://get.docker.com/\" target=\"_blank\" rel=\"noopener noreferrer\">https://get.docker.com</a> | sh</p><h2>Check that it worked</h2><p>docker --version</p><p>docker compose version</p><p>If you see version numbers, you are good.</p><h2>Step 3: Download Clawdbot</h2><p>Now we download the Clawdbot files.</p><p>git clone <a href=\"https://github.com/clawdbot/clawdbot.git\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/clawdbot/clawdbot.git</a></p><p>cd clawdbot</p><p>Think of this like downloading an app folder.</p><h2>Step 4: Create folders to save memory (very important)</h2><p>By default, Docker forgets everything when it restarts.</p><p>We fix that by creating folders outside Docker where data is stored.</p><h2>Run this</h2><p>mkdir -p /root/.clawdbot</p><p>mkdir -p /root/clawd</p><h2>These folders will store</h2><p>Logins</p><p>Settings</p><p>Skills</p><p>Agent memory</p><h2>Now give Docker permission to use them</h2><p>chown -R 1000:1000 /root/.clawdbot</p><p>chown -R 1000:1000 /root/clawd</p><p>If you skip this step, things will break later.</p><h2>Step 5: Create a settings file</h2><p>This file tells Clawdbot how to run.</p><h2>Create a file named .env and paste this inside</h2><p>CLAWDBOT_IMAGE=clawdbot:latest</p><p>CLAWDBOT_GATEWAY_TOKEN=change-me-now</p><p>CLAWDBOT_GATEWAY_PORT=18789</p><p>CLAWDBOT_GATEWAY_BIND=lan</p><p>CLAWDBOT_CONFIG_DIR=/root/.clawdbot</p><p>CLAWDBOT_WORKSPACE_DIR=/root/clawd</p><p>GOG_KEYRING_PASSWORD=change-me-now</p><p>XDG_CONFIG_HOME=/home/node/.clawdbot</p><h2>Important notes</h2><p>Replace change-me-now with your own secret words</p><p>Do not share this file</p><p>Do not upload it to GitHub</p><p>This file is private.</p><h2>Step 6: Tell Docker how to run Clawdbot</h2><p>Docker needs instructions.</p><h2>Create a file called docker-compose.yml</h2><h2>services</h2><h2>clawdbot-gateway</h2><p>image: clawdbot:latest</p><p>build: .</p><p>restart: unless-stopped</p><h2>env_file</h2><ul><li>.env</li></ul><h2>environment</h2><ul><li>HOME=/home/node</li><li>NODE_ENV=production</li><li>TERM=xterm-256color</li><li>CLAWDBOT_GATEWAY_BIND=${CLAWDBOT_GATEWAY_BIND}</li><li>CLAWDBOT_GATEWAY_PORT=${CLAWDBOT_GATEWAY_PORT}</li><li>CLAWDBOT_BRIDGE_PORT=${CLAWDBOT_BRIDGE_PORT}</li><li>CLAWDBOT_GATEWAY_TOKEN=${CLAWDBOT_GATEWAY_TOKEN}</li><li>GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}</li><li>XDG_CONFIG_HOME=${XDG_CONFIG_HOME}</li><li>PATH=/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</li></ul><h2>volumes</h2><ul><li>/root/.clawdbot:/home/node/.clawdbot</li><li>/root/clawd:/home/node/clawd</li></ul><h2>ports</h2><ul><li>&quot;${CLAWDBOT_GATEWAY_PORT}:18789&quot;</li><li>&quot;${CLAWDBOT_BRIDGE_PORT}:18790&quot;</li><li>&quot;18793:18793&quot;</li></ul><h2>command</h2><p>[</p><p>&quot;node&quot;,</p><p>&quot;dist/index.js&quot;,</p><p>&quot;gateway-daemon&quot;,</p><p>&quot;--bind&quot;,</p><p>&quot;${CLAWDBOT_GATEWAY_BIND}&quot;,</p><p>&quot;--port&quot;,</p><p>&quot;${CLAWDBOT_GATEWAY_PORT}&quot;</p><p>]</p><h2>This tells Docker</h2><h2>How to start Clawdbot</h2><p>Where to store memory</p><p>Which door to open for the web page</p><h2>Step 7: About extra tools</h2><p>Some Clawdbot features need extra tools to be installed.</p><h2>Examples</h2><p>Gmail access</p><p>WhatsApp connection</p><p>Location search</p><p>These tools must be added before Clawdbot starts.</p><p>You add them by editing the Dockerfile and rebuilding. This make sure that if you add more skills in the future or need to reset any settings, these skills are not lost</p><p>FROM node:22-bookworm</p><p>RUN apt-get update &amp;&amp; apt-get install -y socat &amp;&amp; rm -rf /var/lib/apt/lists/*</p><p># Install gog binary for Gmail access</p><p>RUN curl -L <a href=\"https://github.com/steipete/gog/releases/latest/download/gog_Linux_x86_64.tar.gz\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/steipete/gog/releases/latest/download/gog_Linux_x86_64.tar.gz</a> -o /tmp/gog.tar.gz &amp;&amp; \\</p><p>tar -xzf /tmp/gog.tar.gz -C /usr/local/bin &amp;&amp; \\</p><p>chmod +x /usr/local/bin/gog &amp;&amp; \\</p><p>rm /tmp/gog.tar.gz</p><p># Install goplaces binary for Google Places API</p><p>RUN curl -L <a href=\"https://github.com/steipete/goplaces/releases/latest/download/goplaces_Linux_x86_64.tar.gz\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/steipete/goplaces/releases/latest/download/goplaces_Linux_x86_64.tar.gz</a> -o /tmp/goplaces.tar.gz &amp;&amp; \\</p><p>tar -xzf /tmp/goplaces.tar.gz -C /usr/local/bin &amp;&amp; \\</p><p>chmod +x /usr/local/bin/goplaces &amp;&amp; \\</p><p>rm /tmp/goplaces.tar.gz</p><p># Install wacli binary for WhatsApp CLI</p><p>RUN curl -L <a href=\"https://github.com/steipete/wacli/releases/latest/download/wacli_Linux_x86_64.tar.gz\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/steipete/wacli/releases/latest/download/wacli_Linux_x86_64.tar.gz</a> -o /tmp/wacli.tar.gz &amp;&amp; \\</p><p>tar -xzf /tmp/wacli.tar.gz -C /usr/local/bin &amp;&amp; \\</p><p>chmod +x /usr/local/bin/wacli &amp;&amp; \\</p><p>rm /tmp/wacli.tar.gz</p><p># Install Bun (required for build scripts)</p><p>RUN curl -fsSL <a href=\"https://bun.sh/install\" target=\"_blank\" rel=\"noopener noreferrer\">https://bun.sh/install</a> | bash</p><p>ENV PATH=&quot;/root/.bun/bin:${PATH}&quot;</p><h2>RUN corepack enable</h2><p>WORKDIR /app</p><p>COPY . .</p><h2>RUN pnpm install --frozen-lockfile</h2><h2>RUN pnpm build</h2><h2>RUN pnpm ui:install</h2><h2>RUN pnpm ui:build</h2><p>ENV NODE_ENV=production</p><p>CMD [&quot;node&quot;,&quot;dist/index.js&quot;]</p><h2>Good news</h2><p>You only do this once per tool.</p><p>If you skip this, things may work today and break tomorrow.</p><h2>Step 8: Start Clawdbot</h2><p>Now we start everything.</p><p>docker compose build</p><p>docker compose up -d</p><h2>Check that it is running</h2><p>docker logs -f clawdbot</p><h2>You should see</h2><p>[gateway] listening on ws://0.0.0.0:18789</p><p>This means Clawdbot is ready.</p><h2>Step 9: Open Clawdbot in your browser</h2><p>Your server is remote, so we create a safe tunnel.</p><h2>On your laptop, run</h2><p>ssh -N -L 18789:127.0.0.1:18789 root@YOUR_SERVER_IP</p><h2>Then open your browser and go to</h2><p><a href=\"http://127.0.0.1:18789/\" target=\"_blank\" rel=\"noopener noreferrer\">http://127.0.0.1:18789/</a></p><p>Paste the secret token you created earlier.</p><p>You are now controlling Clawdbot from your laptop.</p><h2>Why this setup is reliable</h2><p>Your server keeps the memory</p><h2>The app can restart safely</h2><p>Updates do not wipe logins</p><p>Crashes do not lose data</p><p>Final takeaway</p><h2>If you remember nothing else, remember this</h2><h2>Save important data outside Docker</h2><h2>Install tools before starting</h2><p>Restarting should never break things</p><p>You now have a personal jarvis style ai assistant running 24/7 !</p>"
+    },
+    {
+      "id": "3600aff1-c9a9-8106-a247-fd2e45d36d2e",
+      "title": "how to setup your own jarvis (aka clawdbot)",
+      "date": "2026-01-07",
+      "tags": [],
+      "description": "do this to get your own personal Jarvis up and running if you are not living under a rock, i am sure you have heard of @clawdbot by @steipete which is blowing up right now a lot of people have been asking how to set it u",
+      "content": "<h2>do this to get your own personal Jarvis up and running</h2><p>if you are not living under a rock, i am sure you have heard of @clawdbot by @steipete which is blowing up right now</p><p>a lot of people have been asking how to set it up</p><p>here is a the exact flow i followed 👇</p><p>1/ first, what is clawdbot?</p><p>it&#039;s a open-source AI assistant that you can run on your own laptop / desktop machine</p><p>you can use messaging services like whatsapp, telegram ,discord etc to talk to it</p><p>it&#039;s your keys, your workspace</p><p>no SAAS lock-in</p><h2>the project is changing very quickly</h2><p>onboarding used to be manual but now mostly is handled through an onboarding wizard that configures it</p><p>you just answer prompts thats it</p><p>2/ here is how to set it up</p><p>go to the folder in which you want clawdbot to be installed</p><p>&gt; run git clone <a href=\"https://github.com/clawdbot/clawdbot\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/clawdbot/clawdbot</a></p><p>&gt; run cd clawdbot</p><p>&gt; run pnpm install</p><p>this will setup the project for you</p><p>next is the important part: run the onboarding wizard</p><p>pnpm clawdbot onboard</p><p>this is where 90% of setup happens automatically</p><p>during onboarding you&#039;ll be prompted to for a lot of settings, do these two basic steps to get started:</p><p>chose your model provider (openAI or Anthropic)</p><p>chose telegram (I am recommending telegram to get started as telgram supports bots much better natively)</p><p>you can add whatsapp later</p><p>2.1/ Telegram setup</p><h2>Open Telegram</h2><p>Message @BotFather</p><p>/newbot</p><p>Copy the token</p><p>When the onboarding wizrd asks for it, paste and move on.</p><p>3/ start your jarvis backend</p><p>start the gateway (if its not already running). this lets your agent get started on your local machine</p><p>pnpm clawdbot gateway</p><p>you can see the dashboard on: <a href=\"http://127.0.0.1:18789/\" target=\"_blank\" rel=\"noopener noreferrer\">http://127.0.0.1:18789</a></p><p>4/ message your bot</p><p>Open Telegram and message your bot.</p><p>you need to send the first message to your bot to get it going</p><p>this is just the start of your journey, clawdbot is really powerful. if people find this useful i will do another post on:</p><h2>how to set up whatsapp</h2><p>security guidelines</p><h2>getting clawdbot to run on vps / docker</h2><p>and yes, this is open source so please contribute and/ or come join the discord server</p><p>see you there! happy crabbing</p>"
+    },
+    {
+      "id": "3600aff1-c9a9-8180-a99a-cfd66544f9e6",
+      "title": "Grief is like glitter",
+      "date": "2025-07-05",
+      "tags": [],
+      "description": "Beautiful analogy of grief to something usually associated with celebration, glitter",
+      "content": "<p>I recently came across this beautifully written piece on twitter on how grief is like glitter: 💡 Someone said grief is like glitter. It clings to everything. Hides in corners. Slips into your socks. Appears on your fingertips when you’re reaching for a glass of water, or brushing your hair before bed. It settles in places no one else can see. And sometimes, it sparkles. Sometimes, it doesn’t. And love, in all its forms, is the reason we ever grieve at all. So if it hurts, maybe that’s okay. If it glitters in the dark and you cry when no one is looking, maybe that’s okay too. You are not weak for remembering. You are not broken for carrying pieces of people with you. That’s what makes you real. That’s what makes you capable of love. And maybe that’s the kindest thing about grief: it’s evidence that something mattered. That someone left fingerprints on your heart so brightly, the light still catches on them. That you lived a moment so fully, its echo still finds its way back into your lungs. Some people lose things they love—books, cities, voices, future plans—and keep walking as if nothing happened. Others crumble at the touch of a sweater sleeve or the sound of a name. There’s no proper timeline for learning how to live with what you miss. Some days you’ll do it gracefully. Other days, you’ll choke on it. That’s still living. And I think that’s true—not because it makes grief prettier, but because it makes it stubborn. Grief does not knock politely and leave when you ask. It spills. It stains. It stays. People imagine grief as a clean wound: blood, bandage, better. But really, it’s a messy room you can’t fully clean. A scent that lingers even after all the windows are opened. A sound you keep hearing long after the music stops. I am not sure who the writer is but some basic online snooping points me to this tiny twitter (50 followers) account: https://x.com/latehourl</p>"
+    },
+    {
+      "id": "3600aff1-c9a9-811e-a581-f025760fdce3",
+      "title": "Why global founders cannot afford to ignore Saudi Arabia",
+      "date": "2025-02-10",
+      "tags": [],
+      "description": "Key insights from 7 weeks on the ground in Saudi Arabia, exploring funding dynamics, Vision 2030 alignment, and cultural nuances",
+      "content": "<p>I recently spent seven weeks embedded in Riyadh&amp;#039;s startup ecosystem, splitting my time between The Garage — a 28,000 sqm innovation hub hosting 300+ startups —and meetings with founders, VCs, and ministers. Here&amp;#039;s what global entrepreneurs need to know: Insight #1: The Saudi Funding Paradox: Why Late-Stage Startups Thrive While Early-Stage Ventures Struggle Saudi Arabia&amp;#039;s startup scene is a gold rush—but not everyone gets a shovel. Saudi Arabia&amp;#039;s $500B futuristic city NEOM and Red Sea tourism megaprojects dominate headlines, creating the illusion of limitless opportunity. But beneath the glitz lies growing pains of a maturing ecosystem: early-stage founders face a challenging funding landscape . The reasons behind this are cultural, structural, and brutally human: Angel networks are insular : Wealthy Saudi families and UHNWIs dominate early-stage investing, prioritizing social ties over disruptive ideas. &amp;quot;If I fail after taking money from my cousin&amp;#039;s friend, I lose more than capital - I lose reputation,&amp;quot; confessed a fintech founder. Risk aversion reigns : Investors flock to &amp;quot;safe&amp;quot; sectors like e-commerce and replicas of Western models (think: &amp;quot;Uber for X&amp;quot;), while deep tech and moonshots languish. Government programs favor scale-ups : Monsha&amp;#039;at&amp;#039;s SME loans require a history of traction and revenue—a Catch-22 for pre-revenue innovators. The bar is set very high for early stage founders. One Riyadh-based pre-revenue founder put it bluntly: &amp;quot;To raise USD 1M here, you need 10K users and a strong revenue trajectory. In Silicon Valley, you&amp;#039;d get that check with a prototype and a dream.&amp;quot; Global founders can sidestep these hurdles by: Targeting hybrid funding : Pair Saudi grants with global pre-seed funds like Antler, which launched an Riyadh residency program in 2023. Antler runs a word class prog</p>"
+    }
+  ],
+  "quotes": [
+    {
+      "id": "3600aff1-c9a9-81c4-b804-db4a4e2eb613",
+      "text": "A healthy man wants a thousand things, a sick man only wants one.",
+      "author": "Confucius"
+    },
+    {
+      "id": "3600aff1-c9a9-8143-9813-ec9948ac7c3c",
+      "text": "We judge ourselves by our intentions and others by their actions.",
+      "author": "Stephen M.R. Covey"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "books",
+      "title": "Books",
+      "items": [
+        {
+          "id": "3600aff1-c9a9-8148-8622-eaf16028651f",
+          "html": "<a href=\"https://www.goodreads.com/book/show/27220736-shoe-dog\" target=\"_blank\" rel=\"noopener noreferrer\">Shoe Dog</a>",
+          "label": "Shoe Dog",
+          "description": null,
+          "url": "https://www.goodreads.com/book/show/27220736-shoe-dog",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3600aff1-c9a9-8108-b7a0-f959c4a6d08e",
+          "html": "<a href=\"https://www.goodreads.com/book/show/22035859-dream-big\" target=\"_blank\" rel=\"noopener noreferrer\">Dream Big</a>",
+          "label": "Dream Big",
+          "description": null,
+          "url": "https://www.goodreads.com/book/show/22035859-dream-big",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3600aff1-c9a9-8171-99f6-ec2972602ea9",
+          "html": "<a href=\"https://www.goodreads.com/book/show/38743564-billion-dollar-whale\" target=\"_blank\" rel=\"noopener noreferrer\">Billion Dollar Whale</a>",
+          "label": "Billion Dollar Whale",
+          "description": null,
+          "url": "https://www.goodreads.com/book/show/38743564-billion-dollar-whale",
+          "attribution": null,
+          "kind": "curated"
+        }
+      ]
+    },
+    {
+      "id": "tools",
+      "title": "Tools",
+      "items": [
+        {
+          "id": "3600aff1-c9a9-813a-bbaa-f7d138f7a4da",
+          "html": "<a href=\"https://wisprflow.ai/r?ADI3=\" target=\"_blank\" rel=\"noopener noreferrer\">Wispr Flow</a>",
+          "label": "Wispr Flow",
+          "description": null,
+          "url": "https://wisprflow.ai/r?ADI3=",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3600aff1-c9a9-812d-93c5-f4dc42b2a215",
+          "html": "<a href=\"https://hyprnote.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Hyprnote</a>",
+          "label": "Hyprnote",
+          "description": null,
+          "url": "https://hyprnote.com/",
+          "attribution": null,
+          "kind": "curated"
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "Misc",
+      "items": [
+        {
+          "id": "3600aff1-c9a9-81f1-95d5-e1980050116c",
+          "html": "<a href=\"https://www.youtube.com/watch?v=doqS35FfcUE\" target=\"_blank\" rel=\"noopener noreferrer\">Will Smith on motivation</a>",
+          "label": "Will Smith on motivation",
+          "description": null,
+          "url": "https://www.youtube.com/watch?v=doqS35FfcUE",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3600aff1-c9a9-8167-b8b0-d607d1c72d72",
+          "html": "<a href=\"https://www.gocomics.com/calvinandhobbes\" target=\"_blank\" rel=\"noopener noreferrer\">Calvin and Hobbes</a>",
+          "label": "Calvin and Hobbes",
+          "description": null,
+          "url": "https://www.gocomics.com/calvinandhobbes",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3600aff1-c9a9-8165-ad0d-faa19165e06e",
+          "html": "<a href=\"https://www.youtube.com/@manikmahna\" target=\"_blank\" rel=\"noopener noreferrer\">Manik (Standup)</a>",
+          "label": "Manik (Standup)",
+          "description": null,
+          "url": "https://www.youtube.com/@manikmahna",
+          "attribution": null,
+          "kind": "curated"
+        },
+        {
+          "id": "3600aff1-c9a9-81fd-992f-d1307dc58cfc",
+          "html": "<a href=\"https://redmond.life/products/re-lyte-hydration?srsltid=AfmBOoohsQ7Q_Y-T0bB-ozkhWo_m9XVVgG3dVk_Ko_UuArYiiXylYt1G&variant=39646809587760\" target=\"_blank\" rel=\"noopener noreferrer\">Rehydrate Electrolytes</a>",
+          "label": "Rehydrate Electrolytes",
+          "description": null,
+          "url": "https://redmond.life/products/re-lyte-hydration?srsltid=AfmBOoohsQ7Q_Y-T0bB-ozkhWo_m9XVVgG3dVk_Ko_UuArYiiXylYt1G&variant=39646809587760",
+          "attribution": null,
+          "kind": "curated"
+        }
+      ]
+    }
+  ]
+}

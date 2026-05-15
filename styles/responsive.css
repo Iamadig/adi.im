@@ -1,0 +1,140 @@
+@media (min-width: 760px) {
+  .codex-searchbar {
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .print-scroll-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .codex-sidebar {
+    left: 18px !important;
+    top: 72px !important;
+    bottom: auto !important;
+    width: 230px !important;
+    max-height: calc(100vh - 96px);
+  }
+}
+
+@media (max-width: 980px) {
+  .tearable-gear,
+  .tearable-paper-salmon,
+  .tearable-clay-pill {
+    opacity: 0.55;
+    transform: scale(0.78) rotate(var(--r, 0deg));
+  }
+
+  .codex-build-header,
+  .tearable-layer-hero {
+    min-height: 300px;
+    padding-top: 40px;
+  }
+
+  .tearable-live-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tearable-layer-notes {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .codex-sidebar {
+    background: rgba(245, 238, 219, 0.94);
+  }
+
+  .codex-stage {
+    padding-top: 0;
+  }
+
+  .codex-app-window {
+    min-height: calc(100vh - 72px);
+  }
+
+  .tearable-layer-shell {
+    min-height: calc(100vh - 72px);
+    padding: 18px 14px 118px;
+  }
+
+  .tearable-content-surface {
+    max-height: 56vh;
+  }
+
+  .tearable-paper-lilac,
+  .tearable-paper-cream,
+  .tearable-blob-sage {
+    opacity: 0.46;
+  }
+}
+
+@media (max-width: 640px) {
+  .codex-sync-chip,
+  .codex-contact-button,
+  .codex-searchbar,
+  .tearable-gear,
+  .tearable-clay,
+  .tearable-scribble-small {
+    display: none;
+  }
+
+  .codex-stage {
+    padding-inline: 0;
+  }
+
+  .codex-build-header,
+  .tearable-layer-hero {
+    min-height: 350px;
+    padding-inline: 8px;
+  }
+
+  .codex-thread-card,
+  .codex-home-composer {
+    width: calc(100% - 18px);
+  }
+
+  .tearable-floating-composer {
+    bottom: 10px;
+  }
+
+  .tearable-section-topline {
+    padding-inline: 12px;
+  }
+
+  .tearable-content-surface {
+    padding: 16px;
+  }
+
+  .tearable-answer-drawer {
+    right: 9px;
+    bottom: 118px;
+    width: calc(100vw - 18px);
+  }
+
+  .codex-artifact-frame {
+    max-height: 500px;
+    padding: 18px;
+  }
+
+  .tearable-paper-coral {
+    left: -22%;
+    top: 70px;
+    width: 118vw;
+    transform: rotate(13deg);
+  }
+
+  .tearable-paper-lilac {
+    right: -34%;
+    top: 130px;
+    width: 74vw;
+  }
+
+  .tearable-blob-mint {
+    left: -22%;
+    top: 260px;
+    width: 76vw;
+  }
+}
