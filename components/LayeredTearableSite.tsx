@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { SectionType } from '../types';
 import {
   PAGE_H, PAGE_W, PASSIVE_LIFE, PassiveCloth, TearPhase, aliveFraction, beginGrab, commitGeometry, createCloth, createGeometry, createMouseState,
-  createPaperMaterial, disposePassive, getClothDebugState, rebuildIndex, releaseTopEdge, resetCloth, releaseGrab, snapshotPassive, stepActive, stepPassive, tearProgress, moveGrab,
+  createPaperMaterial, disposePassive, dropPins, getClothDebugState, rebuildIndex, resetCloth, releaseGrab, snapshotPassive, stepActive, stepPassive, tearProgress, moveGrab,
 } from '../utils/tearableClothPhysics';
 import {
   TEAR_TEXTURE_HEIGHT,
@@ -16,7 +16,7 @@ import {
   getNextTearSection,
   repaintTearableLayer,
 } from '../utils/tearableCanvasLayers';
-const DROP_TEAR_PROGRESS = 0.0065, DROP_ALIVE_FRACTION = 0.968, DROP_TEAR_WORK = 8.8, PRE_DROP_HOLD = 0.78, POST_DROP_IMPULSE = 0.008, MAX_PASSIVE_LAYERS = 3, RELEASE_SETTLE_MAX = 3.1, RELEASE_SETTLE_MIN = 0.55, SETTLE_AVG_SPEED = 0.0016, SETTLE_MAX_SPEED = 0.01;
+const DROP_TEAR_PROGRESS = 0.012, DROP_ALIVE_FRACTION = 0.968, DROP_TEAR_WORK = 10.4, POST_DROP_IMPULSE = 0.011, MAX_PASSIVE_LAYERS = 3, RELEASE_SETTLE_MAX = 3.1, RELEASE_SETTLE_MIN = 0.55, SETTLE_AVG_SPEED = 0.0016, SETTLE_MAX_SPEED = 0.01;
 type TearDebugWindow = Window & { __tearState?: () => unknown };
 interface LayeredTearableSiteProps { activeSection: SectionType; content: TearableCanvasContent; onRevealSection?: (section: SectionType) => void; }
 const initialCanvasState: TearableCanvasState = { layout: 'landscape', focusedInput: null, signalInput: '', recInput: '', selectedThoughtId: null, pulledSignal: null, queuedRec: null };
@@ -299,6 +299,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       if (!dropSnapshotCreated) addFallingSheet();
       activeRender = backRender;
       currentSection = next;
+      activeSectionRef.current = currentSection;
       backRender = createRenderFor(getNextTearSection(currentSection));
       activeHitRegions = activeRender.hitRegions;
       resetCloth(cloth);
@@ -326,7 +327,7 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       if (!dropStarted && (torn > DROP_TEAR_PROGRESS || alive < DROP_ALIVE_FRACTION || tearWork > DROP_TEAR_WORK)) {
         releaseGrab(cloth);
         mouse.down = false;
-        releaseTopEdge(cloth);
+        dropPins(cloth);
         dropStarted = true;
         if (!dropSnapshotCreated) {
           addFallingSheet();
@@ -334,8 +335,6 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
         }
         dropStartedAt = elapsed;
         phase = 'dropping';
-      }
-      if (dropStarted && elapsed - dropStartedAt > PRE_DROP_HOLD) {
         advance();
       }
     }

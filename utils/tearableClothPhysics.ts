@@ -4,7 +4,7 @@ export const PAGE_W = 16;
 export const PAGE_H = 9.2;
 export const PASSIVE_LIFE = 3.6;
 
-const PASSIVE_START_OPACITY = 0.96;
+const PASSIVE_START_OPACITY = 1;
 const W_DIV = 108;
 const H_DIV = 62;
 const W = W_DIV + 1;
@@ -18,7 +18,9 @@ const REST_X = PAGE_W / W_DIV;
 const REST_Y = PAGE_H / H_DIV;
 
 const TEAR_RATIO = 4.0;
-const ITERATIONS = 2;
+const ITERATIONS = 3;
+const ACTIVE_CONSTRAINT_STIFFNESS = 0.42;
+const PASSIVE_CONSTRAINT_STIFFNESS = 0.34;
 const FRICTION = 0.978;
 const GRAVITY = -0.0009;
 const PASSIVE_GRAVITY = -0.00075;
@@ -82,10 +84,13 @@ export interface ClothData {
 export interface PassiveCloth {
   cloth: ClothData;
   geometry: THREE.BufferGeometry;
-  material: THREE.MeshStandardMaterial;
+  material: THREE.MeshBasicMaterial;
   mesh: THREE.Mesh;
   texture: THREE.Texture;
   age: number;
+  driftX: number;
+  driftY: number;
+  spin: number;
 }
 
 export function createMouseState(): MouseState {
@@ -251,7 +256,11 @@ export function stepActive(cloth: ClothData, _mouse?: MouseState, damping = FRIC
     cloth.positions[i3 + 1] = y + (y - py) * damping + GRAVITY * gravityScale * (1 + cloth.isolation[i] * 0.4);
     cloth.positions[i3 + 2] = z + (z - pz) * damping + cloth.isolation[i] * 0.0011;
   }
-  relaxConstraints(cloth, TEAR_RATIO, true);
+  relaxConstraints(cloth, TEAR_RATIO, true, ACTIVE_CONSTRAINT_STIFFNESS);
+}
+
+export function dropPins(cloth: ClothData) {
+  cloth.pinned.fill(0);
 }
 
 export function releaseTopEdge(cloth: ClothData) {
@@ -332,13 +341,21 @@ export function snapshotPassive(source: ClothData, texture: THREE.Texture, scene
   };
   for (let i = 0; i < N; i++) cloth.prev[i * 3 + 1] = cloth.positions[i * 3 + 1] + dropImpulse;
   const geometry = createGeometry(cloth);
-  const material = createPaperMaterial(texture, true);
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: PASSIVE_START_OPACITY,
+    depthWrite: false,
+  });
   material.opacity = PASSIVE_START_OPACITY;
-  material.depthWrite = false;
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.z = 0.22;
   scene.add(mesh);
-  return { cloth, geometry, material, mesh, texture, age: 0 };
+  const motion = averageMotion(source);
+  const driftX = clamp(motion.vx * 34 + (motion.cx < 0 ? -0.11 : 0.11), -0.44, 0.44);
+  const spin = clamp(motion.vx * 0.16 - motion.vy * 0.08 + (motion.cx < 0 ? -0.025 : 0.025), -0.18, 0.18);
+  return { cloth, geometry, material, mesh, texture, age: 0, driftX, driftY: -0.62, spin };
 }
 
 export function stepPassive(passive: PassiveCloth, dt: number) {
@@ -359,12 +376,35 @@ export function stepPassive(passive: PassiveCloth, dt: number) {
     cloth.positions[i3 + 1] = y + (y - py) * 0.99 + PASSIVE_GRAVITY;
     cloth.positions[i3 + 2] = Math.min(0.08, z + (z - pz) * 0.99 + 0.0012);
   }
-  relaxConstraints(cloth, 6, false);
+  const exitEase = Math.min(1, passive.age / 0.35);
+  passive.mesh.position.x += passive.driftX * dt * exitEase;
+  passive.mesh.position.y += passive.driftY * dt * (0.55 + passive.age * 0.2);
+  passive.mesh.rotation.z += passive.spin * dt * exitEase;
+  relaxConstraints(cloth, 6, false, PASSIVE_CONSTRAINT_STIFFNESS);
   commitGeometry(passive.geometry, cloth);
-  const fadeStart = PASSIVE_LIFE * 0.55;
+  const fadeStart = PASSIVE_LIFE * 0.66;
   passive.material.opacity = passive.age < fadeStart
     ? PASSIVE_START_OPACITY
     : Math.max(0, PASSIVE_START_OPACITY * (1 - (passive.age - fadeStart) / (PASSIVE_LIFE - fadeStart)));
+}
+
+function averageMotion(cloth: ClothData) {
+  let cx = 0;
+  let vx = 0;
+  let vy = 0;
+  for (let i = 0; i < N; i++) {
+    const i3 = i * 3;
+    const x = cloth.positions[i3];
+    const y = cloth.positions[i3 + 1];
+    cx += x;
+    vx += x - cloth.prev[i3];
+    vy += y - cloth.prev[i3 + 1];
+  }
+  return { cx: cx / N, vx: vx / N, vy: vy / N };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 export function disposePassive(passive: PassiveCloth, scene: THREE.Scene) {
@@ -416,7 +456,7 @@ function killCellsForConstraint(cloth: ClothData, k: number) {
   if (x < W_DIV) cloth.cellAlive[y * W_DIV + x] = 0;
 }
 
-function relaxConstraints(cloth: ClothData, tearRatio: number, canTear: boolean) {
+function relaxConstraints(cloth: ClothData, tearRatio: number, canTear: boolean, stiffness: number) {
   for (let iter = 0; iter < ITERATIONS; iter++) {
     for (let k = 0; k < C_COUNT; k++) {
       if (!cloth.cAlive[k]) continue;
@@ -433,7 +473,7 @@ function relaxConstraints(cloth: ClothData, tearRatio: number, canTear: boolean)
         killConstraint(cloth, k);
         continue;
       }
-      const diff = (cloth.cRest[k] - dist) / dist * 0.5;
+      const diff = (cloth.cRest[k] - dist) / dist * 0.5 * stiffness;
       const pa = cloth.pinned[a] ? 0 : 1;
       const pb = cloth.pinned[b] ? 0 : 1;
       const sum = pa + pb;
