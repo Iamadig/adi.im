@@ -17,7 +17,6 @@ export interface TearableTextureUpload {
 }
 
 const COMPONENTS = 4;
-const FULL_UPLOAD_PIXEL_RATIO = 0.62;
 
 export function createTearableTextureUpload(canvas: HTMLCanvasElement): TearableTextureUpload {
   const pixels = readCanvasPixels(canvas);
@@ -46,11 +45,8 @@ export function createTearableTextureUpload(canvas: HTMLCanvasElement): Tearable
 export function syncTearableTextureUpload(canvas: HTMLCanvasElement, upload: TearableTextureUpload) {
   const next = readCanvasPixels(canvas);
   const rowStride = canvas.width * COMPONENTS;
-  const totalPixels = canvas.width * canvas.height;
   let changedRows = 0;
   let changedPixels = 0;
-  let uploadComponents = 0;
-  const rowRanges: Array<[number, number]> = [];
 
   for (let row = 0; row < canvas.height; row += 1) {
     const rowStart = row * rowStride;
@@ -66,10 +62,8 @@ export function syncTearableTextureUpload(canvas: HTMLCanvasElement, upload: Tea
     const start = Math.floor(first / COMPONENTS) * COMPONENTS;
     const end = (Math.floor(last / COMPONENTS) + 1) * COMPONENTS;
     upload.pixels.set(next.subarray(start, end), start);
-    rowRanges.push([start, end - start]);
     changedRows += 1;
     changedPixels += (end - start) / COMPONENTS;
-    uploadComponents += end - start;
   }
 
   if (!changedRows) {
@@ -82,17 +76,12 @@ export function syncTearableTextureUpload(canvas: HTMLCanvasElement, upload: Tea
   }
 
   upload.texture.clearUpdateRanges();
-  if (changedPixels / totalPixels > FULL_UPLOAD_PIXEL_RATIO) {
-    upload.pixels.set(next);
-    upload.stats.fullUploads += 1;
-    upload.stats.lastMode = 'full';
-    upload.stats.lastUploadComponents = upload.pixels.length;
-  } else {
-    for (const [start, count] of rowRanges) upload.texture.addUpdateRange(start, count);
-    upload.stats.partialUploads += 1;
-    upload.stats.lastMode = 'partial';
-    upload.stats.lastUploadComponents = uploadComponents;
-  }
+  // Three/WebGL partial DataTexture updates with flipY can upload mirrored row bands
+  // in some browser paths. Repaints are rare, so use a full upload for correctness.
+  upload.pixels.set(next);
+  upload.stats.fullUploads += 1;
+  upload.stats.lastMode = 'full';
+  upload.stats.lastUploadComponents = upload.pixels.length;
   upload.stats.lastChangedRows = changedRows;
   upload.stats.lastChangedPixels = changedPixels;
   upload.texture.needsUpdate = true;

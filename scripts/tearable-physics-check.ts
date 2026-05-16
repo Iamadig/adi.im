@@ -21,6 +21,7 @@ import { H, W, buildAliveIndex } from '../utils/tearableClothCore';
 import { relaxClothShear } from '../utils/tearableClothShear';
 import { raycastClothGrid } from '../utils/tearableClothRaycast';
 import { clampClothVelocity } from '../utils/tearableClothVelocity';
+import { hasUnsafeActiveFold } from '../utils/tearableClothSafety';
 import { snapshotClothForWorker } from '../utils/tearableClothWorkerState';
 import { ActiveClothWorkerController, PassiveClothWorkerController } from '../utils/tearableWorkerControllers';
 
@@ -48,10 +49,26 @@ function diagonalError(positions: Float32Array) {
 }
 
 const canvasDrawingSource = readFileSync(new URL('../utils/tearableCanvasDrawing.ts', import.meta.url), 'utf8');
+const textureUploadSource = readFileSync(new URL('../utils/tearableTextureUpload.ts', import.meta.url), 'utf8');
 assert.ok(
   !canvasDrawingSource.includes('destination-out'),
   'decorative canvas helpers should not punch transparent holes that render as black blobs on opaque Three materials',
 );
+assert.ok(
+  !textureUploadSource.includes('addUpdateRange'),
+  'texture repaints should avoid partial DataTexture row uploads that can mirror row bands with flipY',
+);
+
+const safeCloth = createCloth();
+assert.equal(hasUnsafeActiveFold(safeCloth), false, 'fresh active cloth should not report an unsafe fold');
+for (let y = 8; y < 22; y += 1) {
+  for (let x = 0; x < W; x += 1) {
+    const i3 = (y * W + x) * 3;
+    safeCloth.positions[i3 + 1] = 2.2 + y * 0.08;
+    safeCloth.prev[i3 + 1] = safeCloth.positions[i3 + 1];
+  }
+}
+assert.equal(hasUnsafeActiveFold(safeCloth), true, 'inverted active cloth rows should be detected before they render mirrored texture bands');
 
 const cloth = createCloth();
 const geometry = createGeometry(cloth);

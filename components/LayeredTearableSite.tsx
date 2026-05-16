@@ -10,6 +10,7 @@ import { createTearableInputController } from '../utils/tearableInputController'
 import { createTearablePointerTracker } from '../utils/tearablePointerTracker';
 import { findTearableHitRegion, pointerToTearablePoint, updateTearableCursor } from '../utils/tearablePointerProjection';
 import type { ActiveTearPointer } from '../utils/tearablePointerTracker';
+import { hasUnsafeActiveFold } from '../utils/tearableClothSafety';
 import { createTearableThreeStage } from '../utils/tearableThreeStage';
 import { ActiveClothWorkerController, PassiveClothWorkerController } from '../utils/tearableWorkerControllers';
 import { shouldUseTearableWasm } from '../utils/tearableWasmFlag';
@@ -165,9 +166,9 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
     const pointerToCanvas = (event: PointerEvent, mode?: 'mesh' | 'plane') => pointerToTearablePoint({ event, mode, ...pointerProjection() });
     const findRegion = (x: number, y: number) => findTearableHitRegion(activeHitRegions, x, y);
     const updateCursor = (region: ReturnType<typeof findRegion>, tearing: boolean) => updateTearableCursor(host, region, tearing);
-	    function clearInteractionState() {
-	      const layout = uiState.layout;
-	      Object.assign(uiState, initialCanvasState, { layout });
+    function clearInteractionState() {
+      const layout = uiState.layout;
+      Object.assign(uiState, initialCanvasState, { layout });
       pointerTracker.clear();
       dropStarted = false;
       dropSheetPromoted = false;
@@ -181,6 +182,14 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       mouse.active = false;
       releaseGrab(cloth);
       postActiveWorkerCommand({ type: 'releaseGrab' });
+    }
+    function restoreActiveSheet() {
+      resetCloth(cloth);
+      releaseGrab(cloth);
+      rebuildIndex(geometry, cloth);
+      commitGeometry(geometry, cloth);
+      initActiveWorkerForCurrentCloth();
+      dropStarted = false; dropSheetPromoted = false; tearWork = 0; settleUntil = 0; activeStepCarry = 0; phase = 'idle';
     }
     function resetExperience() {
       const activeSheetIsPassive = dropSheetPromoted;
@@ -407,7 +416,8 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
         const { averageSpeed, maxSpeed } = getClothDebugState(cloth);
         if (averageSpeed < SETTLE_AVG_SPEED && maxSpeed < SETTLE_MAX_SPEED) settleUntil = elapsed;
       }
-      if (phase === 'torn' && elapsed >= settleUntil && !dropStarted) phase = 'idle';
+      if (phase === 'torn' && elapsed >= settleUntil && !dropStarted) restoreActiveSheet();
+      else if (phase === 'idle' && !mouse.down && !dropStarted && hasUnsafeActiveFold(cloth)) restoreActiveSheet();
       for (let i = passives.length - 1; i >= 0; i--) {
         const passive = passives[i];
         if (passive.workerId) {

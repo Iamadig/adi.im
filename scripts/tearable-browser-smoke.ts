@@ -212,6 +212,17 @@ async function main() {
     await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'r', code: 'KeyR', windowsVirtualKeyCode: 82, nativeVirtualKeyCode: 82 });
     await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'r', code: 'KeyR', windowsVirtualKeyCode: 82, nativeVirtualKeyCode: 82 });
   }
+  async function dragPartial() {
+    const path = [[520, 250], [545, 270], [575, 288], [610, 305]];
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: path[0][0], y: path[0][1], button: 'none' });
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: path[0][0], y: path[0][1], button: 'left', buttons: 1, clickCount: 1 });
+    for (const [x, y] of path.slice(1)) {
+      await sleep(80);
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, button: 'left', buttons: 1 });
+    }
+    const [lastX, lastY] = path.at(-1)!;
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: lastX, y: lastY, button: 'left', buttons: 0, clickCount: 1 });
+  }
 
   await send('Runtime.evaluate', {
     expression: `(() => {
@@ -363,6 +374,17 @@ async function main() {
   }))()`);
   assert.equal(afterReset.state?.section, 'About Me', 'R should reset to About Me');
   assert.equal(afterReset.state?.passives, 0, 'reset should clear falling sheets');
+
+  await dragPartial();
+  await sleep(3600);
+  const afterPartialRelease = await evaluate<{ state: { phase: string; passives: number; tearWork: number; cloth: { tearPercent: number; maxStretchRatio: number } } | null }>(`(() => ({
+    state: typeof window.__tearState === 'function' ? window.__tearState() : null
+  }))()`);
+  assert.equal(afterPartialRelease.state?.phase, 'idle', 'non-drop tears should settle back to an idle sheet');
+  assert.equal(afterPartialRelease.state?.passives, 0, 'non-drop tears should not create falling sheets');
+  assert.equal(afterPartialRelease.state?.tearWork, 0, 'non-drop tears should reset accumulated tear work');
+  assert.equal(afterPartialRelease.state?.cloth.tearPercent, 0, 'non-drop tears should restore the active cloth topology');
+  assert.ok((afterPartialRelease.state?.cloth.maxStretchRatio ?? 99) < 1.25, 'non-drop tears should restore a flat active sheet instead of keeping mirrored texture folds');
 
   const multiGrab = await evaluate<{ state: { cloth: { activeGrabSlots: number; grabCount: number }; pointers: Array<{ tearing: boolean; slot: number }> } | null }>(`(() => {
     const canvas = document.querySelector('canvas');
