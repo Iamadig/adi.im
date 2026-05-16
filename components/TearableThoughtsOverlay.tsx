@@ -10,6 +10,16 @@ function stripHtml(value: string) {
   return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function normalizeText(value: string) {
+  return stripHtml(value).replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function descriptionRepeatsContent(description: string, content: string) {
+  const normalizedDescription = normalizeText(description);
+  const normalizedContent = normalizeText(content);
+  return normalizedDescription.length > 0 && normalizedContent.startsWith(normalizedDescription);
+}
+
 function formatDate(value: string) {
   const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   const date = dateOnly
@@ -44,6 +54,8 @@ export function TearableThoughtsOverlay({ activeSection, thoughts }: TearableTho
 
   if (!visible || !selected) return null;
 
+  const showDescription = selected.description && !descriptionRepeatsContent(selected.description, selected.content);
+
   return (
     <section
       className="tearable-thoughts-overlay"
@@ -76,7 +88,7 @@ export function TearableThoughtsOverlay({ activeSection, thoughts }: TearableTho
             <span>{formatDate(selected.date)}</span>
             {selected.tags.map((tag) => <span key={tag}>{tag}</span>)}
           </div>
-          {selected.description ? <p className="tearable-thoughts-description">{selected.description}</p> : null}
+          {showDescription ? <p className="tearable-thoughts-description">{selected.description}</p> : null}
         </header>
         <div
           className="tearable-thoughts-prose"

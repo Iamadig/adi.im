@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-15T00:16:53.828Z",
+  "generatedAt": "2026-05-16T18:02:11.875Z",
   "canvasCopy": [
     {
       "id": "3600aff1-c9a9-814c-97a6-cef3a8d43a23",
@@ -256,6 +256,11 @@
       "id": "3600aff1-c9a9-8143-9813-ec9948ac7c3c",
       "text": "We judge ourselves by our intentions and others by their actions.",
       "author": "Stephen M.R. Covey"
+    },
+    {
+      "id": "3610aff1-c9a9-8021-894c-d5372dd3b2ff",
+      "text": "What I cannot create, I do not understand.",
+      "author": "Richard Feynman"
     }
   ],
   "recommendations": [

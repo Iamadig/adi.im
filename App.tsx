@@ -57,7 +57,7 @@ const App: React.FC = () => {
         onActiveOutlineChange={handleActiveOutlineChange}
         onRevealSection={setActiveSection}
       />
-      <p className="tearable-page-hint">Tear the page to navigate. Press R to reset.</p>
+      {activeSection !== SectionType.THOUGHTS ? <p className="tearable-page-hint">Tear the page to navigate. Press R to reset.</p> : null}
       {import.meta.env.PROD ? <Analytics /> : null}
     </div>
   );

@@ -40,7 +40,10 @@ export function drawGear(g: CanvasRenderingContext2D, cx: number, cy: number, r:
   }
   g.closePath();
   g.fill();
-  g.globalCompositeOperation = 'destination-out';
+  // Keep the sheet texture opaque. Clearing the center creates alpha-zero
+  // pixels that render as black through the opaque Three material.
+  g.globalAlpha = Math.min(1, alpha * 0.72);
+  g.fillStyle = 'rgba(255,248,224,0.82)';
   g.beginPath();
   g.arc(cx, cy, r * 0.42, 0, Math.PI * 2);
   g.fill();

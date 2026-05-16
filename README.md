@@ -161,6 +161,36 @@ npm run content:publish
 
 That rebuilds the snapshot, runs the production build, then shows `git status` so you can commit and push.
 
+## Testing
+
+```bash
+npm run lint --if-present
+npm run typecheck
+npm run test:physics
+npm run test:wasm
+npm run test:browser-smoke:wasm
+npm run test:browser-smoke:ts
+npm run build
+```
+
+- `test:physics` validates cloth promotion, release motion, stretch bounds, explicit cut topology, reusable geometry topology buffers, worker-provided upload hints, WASM-worker failover, live-cell shear/bend resistance, local curvature smoothing, and multi-grab slot bookkeeping without a browser.
+- `test:wasm` builds the WASM cloth solver and compares active solve, motion-only snapshots, worker timing metadata, passive falling, normals, explicit cuts, tear counts, and live topology index output against the TypeScript solver.
+- `test:browser-smoke:wasm` launches Chrome against the default WASM backend; `test:browser-smoke:ts` repeats the same flow with `?wasmCloth=0` to verify the TypeScript fallback.
+- `test:browser-smoke` is the underlying DevTools smoke runner. It verifies protected links, display-only Thoughts/Quotes canvas surfaces, real article-pane scrolling/clicks, hidden arrow navigation, secondary-button cut/tear, tear-to-reveal timing, reset, mobile overflow, active-cloth worker usage, passive-sheet worker usage, worker timing/upload debug stats, two-touch grab slots, and frame pacing during tear/drop.
+- The browser smoke test expects a local server at `http://127.0.0.1:3000/`. Run `npm run dev` first.
+- Physics parity notes and remaining Pushmatrix gaps live in `docs/tearable-physics-audit.md`.
+
+### WASM Cloth Solver
+
+WASM is the default active and passive cloth worker backend. Build the deployable module with:
+
+```bash
+npm run wasm:build
+npm run dev
+```
+
+Use `?wasmCloth=0`, `localStorage.tearableWasm = '0'`, or `VITE_TEARABLE_WASM=0` to force the TypeScript worker fallback. Use `?wasmCloth=1` or `localStorage.tearableWasm = '1'` to force WASM when needed. If the WASM worker fails during startup or runtime, the app rehydrates the TypeScript worker backend. If workers are unavailable entirely, it falls back to main-thread TypeScript stepping rather than blocking interaction.
+
 ## Project Structure
 
 ```
@@ -218,6 +248,23 @@ First time setup:
 ## Interface Notes
 
 - The public shell should feel like one physical sheet, not an app dashboard.
+- A torn sheet should stay alive as the same cloth mesh during release; avoid snapshot-style transitions.
+- Drop promotion waits briefly after release so stored tension can visibly rebound before the sheet falls away.
+- Drop impulse is layered onto existing cloth velocity instead of replacing release momentum.
+- Secondary-button drag uses an explicit cut path for more deliberate tearing; Shift-drag keeps the same path as a keyboard-accessible shortcut.
+- Active and passive tear simulation use WASM Web Workers by default, with TypeScript worker fallback available via `?wasmCloth=0`; worker snapshots include normals, and active snapshots include torn topology indices.
+- Active worker frames that predate a later pointer command are skipped on arrival, so live grab/cut edits do not visibly rewind.
+- Main-thread topology application reuses dynamic index buffers and draw ranges instead of reallocating index attributes during every tear update.
+- Cloth position/normal buffers use dynamic draw usage plus changed-range tracking for partial attribute uploads on small local edits.
+- Canvas sheet textures use `DataTexture` row-range updates after initial paint, so protected content changes can upload only changed rows.
+- The Quotes layer is display-only; do not reintroduce a prompt field, pull button, or hidden input bridge on that surface.
+- Initial pointer hits use a bounded cloth-grid raycast over live cells rather than Three's generic mesh raycaster.
+- Active tear/cut drags use plane projection after the gesture starts, avoiding repeated mesh raycasts on the hottest pointer-move path.
+- Live cells get diagonal shear correction, which keeps the sheet from collapsing into a loose rectangular mesh while still letting torn cells separate.
+- The cloth solver includes a lightweight curvature smoothing pass so release/fall motion keeps more sheet-like tension instead of collapsing into rubbery local folds.
+- Solver steps cap only extreme per-particle velocity outliers after constraints, preserving rebound while preventing single-frame snap spikes.
+- Grab state is slot-based rather than global; slot `0` preserves single-pointer dragging and additional touch pointers can hold independent tension points.
+- Released sheets use a Web Worker for passive cloth simulation so falling motion does not compete with UI rendering.
 - Keep `content/site-content.curated.json` as the source for public profile content.
 - Keep visual changes grounded in readable content; this is a personal site first, interaction second.
 

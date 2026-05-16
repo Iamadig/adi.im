@@ -10,9 +10,15 @@
     "content:create-cms": "tsx scripts/create-canvas-cms.ts",
     "content:sync": "tsx scripts/sync-content.ts",
     "content:publish": "npm run build && git status --short",
+    "test:browser-smoke": "tsx scripts/tearable-browser-smoke.ts",
+    "test:physics": "tsx scripts/tearable-physics-check.ts",
     "build": "npm run content:sync && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "wasm:build": "asc assembly/tearableSolver.ts --outFile public/wasm/tearable_solver.wasm --runtime stub --initialMemory 8 -O --noAssert",
+    "test:wasm": "npm run wasm:build && tsx scripts/tearable-wasm-check.ts",
+    "test:browser-smoke:wasm": "TEARABLE_TEST_URL='http://127.0.0.1:3000/' npm run test:browser-smoke",
+    "test:browser-smoke:ts": "TEARABLE_TEST_URL='http://127.0.0.1:3000/?wasmCloth=0' npm run test:browser-smoke"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
@@ -30,6 +36,7 @@
     "@types/node": "^22.14.0",
     "@vercel/node": "^5.5.8",
     "@vitejs/plugin-react": "^5.0.0",
+    "assemblyscript": "^0.28.17",
     "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",

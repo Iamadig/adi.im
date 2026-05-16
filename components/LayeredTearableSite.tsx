@@ -1,25 +1,29 @@
 import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
 import { SectionType } from '../types';
 import {
-  PAGE_H, PAGE_W, PASSIVE_LIFE, PassiveCloth, TearPhase, aliveFraction, beginGrab, commitGeometry, createCloth, createGeometry, createMouseState,
-  createPaperMaterial, disposePassive, dropPins, getClothDebugState, rebuildIndex, resetCloth, releaseGrab, snapshotPassive, stepActive, stepPassive, tearProgress, moveGrab,
+  PAGE_H, PAGE_W, PASSIVE_LIFE, PassiveCloth, TearPhase, advancePassiveVisual, aliveFraction, beginGrab, commitGeometry, createMouseState,
+  cutClothSegment, disposePassive, getClothDebugState, promoteLivePassive, rebuildIndex, resetCloth, releaseGrab, setGeometryIndex, stepActive, stepPassive, tearProgress, moveGrab,
 } from '../utils/tearableClothPhysics';
+import { applyClothWorkerSnapshot } from '../utils/tearableClothWorkerState';
+import { exposeTearDebugState, shouldExposeTearDebug, updateTearDebugDataset } from '../utils/tearableDebug';
+import { createTearableInputController } from '../utils/tearableInputController';
+import { createTearablePointerTracker } from '../utils/tearablePointerTracker';
+import { findTearableHitRegion, pointerToTearablePoint, updateTearableCursor } from '../utils/tearablePointerProjection';
+import type { ActiveTearPointer } from '../utils/tearablePointerTracker';
+import { createTearableThreeStage } from '../utils/tearableThreeStage';
+import { ActiveClothWorkerController, PassiveClothWorkerController } from '../utils/tearableWorkerControllers';
+import { shouldUseTearableWasm } from '../utils/tearableWasmFlag';
 import {
-  TEAR_TEXTURE_HEIGHT,
-  TEAR_TEXTURE_WIDTH,
   TearableCanvasContent,
   TearableCanvasState,
-  TearableHitRegion,
   TearableLayerRender,
   createTearableLayerRender,
   getNextTearSection,
   repaintTearableLayer,
 } from '../utils/tearableCanvasLayers';
-const DROP_TEAR_PROGRESS = 0.012, DROP_ALIVE_FRACTION = 0.968, DROP_TEAR_WORK = 10.4, POST_DROP_IMPULSE = 0.011, MAX_PASSIVE_LAYERS = 3, RELEASE_SETTLE_MAX = 3.1, RELEASE_SETTLE_MIN = 0.55, SETTLE_AVG_SPEED = 0.0016, SETTLE_MAX_SPEED = 0.01;
-type TearDebugWindow = Window & { __tearState?: () => unknown };
+const DROP_TEAR_PROGRESS = 0.012, DROP_ALIVE_FRACTION = 0.968, DROP_TEAR_WORK = 10.4, DROP_REBOUND_HOLD = 0.18, CUT_RADIUS = 0.08, POST_DROP_IMPULSE = 0.011, MAX_PASSIVE_LAYERS = 3, RELEASE_SETTLE_MAX = 3.1, RELEASE_SETTLE_MIN = 0.55, SETTLE_AVG_SPEED = 0.0016, SETTLE_MAX_SPEED = 0.01, FIXED_PHYSICS_STEP = 1 / 60, MAX_PHYSICS_STEPS = 4, DROP_ADVANCE_DELAY = 0.42;
 interface LayeredTearableSiteProps { activeSection: SectionType; content: TearableCanvasContent; onRevealSection?: (section: SectionType) => void; }
-const initialCanvasState: TearableCanvasState = { layout: 'landscape', focusedInput: null, signalInput: '', recInput: '', selectedThoughtId: null, pulledSignal: null, queuedRec: null };
+const initialCanvasState: TearableCanvasState = { layout: 'landscape' };
 export function LayeredTearableSite({ activeSection, content, onRevealSection }: LayeredTearableSiteProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef(content);
@@ -32,81 +36,40 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
     if (!hostRef.current) return;
     let disposed = false;
     const host = hostRef.current;
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x11100d);
-    const camera = new THREE.OrthographicCamera(-PAGE_W / 2, PAGE_W / 2, PAGE_H / 2, -PAGE_H / 2, 0.1, 200);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
-    renderer.domElement.className = 'layered-tearable-canvas';
-    renderer.domElement.setAttribute('aria-label', 'Tearable profile canvas');
-    renderer.domElement.tabIndex = 0;
-    host.appendChild(renderer.domElement);
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'text';
-    hiddenInput.autocomplete = 'off';
-    hiddenInput.spellcheck = false;
-    hiddenInput.className = 'layered-tearable-hidden-input';
-    hiddenInput.setAttribute('aria-label', 'Tearable sheet text entry');
-    document.body.appendChild(hiddenInput);
-    const raycaster = new THREE.Raycaster();
-    const ndc = new THREE.Vector2();
-    const hit = new THREE.Vector3();
-    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
     const mouse = createMouseState();
-    const pointerStart = { x: 0, y: 0, moved: false };
+    const pointerTracker = createTearablePointerTracker();
     const uiState: TearableCanvasState = { ...initialCanvasState };
     const passives: PassiveCloth[] = [];
-    const cloth = createCloth();
-    const geometry = createGeometry(cloth);
     let currentSection = activeSectionRef.current;
     let activeRender = createRenderFor(currentSection);
     let backRender = createRenderFor(getNextTearSection(currentSection));
+    const stage = createTearableThreeStage(host, activeRender, backRender);
+    const { scene, camera, renderer, raycaster, ndc, hit, plane, backMaterial, backMesh } = stage;
+    let { cloth, geometry, material, mesh } = stage.activeSheet;
     let activeHitRegions = activeRender.hitRegions;
-    let pointerRegion: TearableHitRegion | null = null;
-    let hoveredRegion: TearableHitRegion | null = null;
-    let tearArmed = false;
-    let dropStarted = false;
-    let dropSnapshotCreated = false;
+    let dropStarted = false, dropSheetPromoted = false;
     let dropStartedAt = 0, advanceCooldown = 0, settleStartedAt = 0, settleUntil = 0, tearWork = 0;
     let advancing = false;
     let phase: TearPhase = 'idle';
-    let width = 1, height = 1, elapsed = 0, last = performance.now(), raf = 0;
-    const material = createPaperMaterial(activeRender.texture);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    scene.add(mesh);
-    const backGeometry = new THREE.PlaneGeometry(PAGE_W, PAGE_H, 1, 1);
-    const backMaterial = createPaperMaterial(backRender.texture);
-    const backMesh = new THREE.Mesh(backGeometry, backMaterial);
-    backMesh.position.z = -0.34;
-    backMesh.receiveShadow = true;
-    backMesh.visible = false;
-    scene.add(backMesh);
-    const ambient = new THREE.AmbientLight(0xffffff, 1.45);
-    scene.add(ambient);
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.55);
-    keyLight.position.set(-1.8, 2.4, 5.4);
-    keyLight.castShadow = true;
-    keyLight.shadow.mapSize.set(1024, 1024);
-    keyLight.shadow.camera.left = -10;
-    keyLight.shadow.camera.right = 10;
-    keyLight.shadow.camera.top = 8;
-    keyLight.shadow.camera.bottom = -8;
-    keyLight.shadow.bias = -0.0003;
-    scene.add(keyLight);
-    const rimLight = new THREE.DirectionalLight(0xffe1b8, 0.75);
-    rimLight.position.set(2.8, -1.4, 4.6);
-    scene.add(rimLight);
+    let elapsed = 0, last = performance.now(), raf = 0, activeStepCarry = 0;
+    const useWasmCloth = shouldUseTearableWasm(window);
+    const passiveWorkers = new PassiveClothWorkerController((passive, positions, prev, normals, upload) => {
+      passive.cloth.positions.set(positions);
+      passive.cloth.prev.set(prev);
+      if (normals) passive.cloth.normals.set(normals);
+      commitGeometry(passive.geometry, passive.cloth, !normals, upload);
+    }, { wasm: useWasmCloth });
+    const activeWorkers = new ActiveClothWorkerController((snapshot) => {
+      const previousTearCount = cloth.tearCount;
+      applyClothWorkerSnapshot(cloth, snapshot);
+      if (snapshot.index) setGeometryIndex(geometry, snapshot.index);
+      else if (cloth.tearCount !== previousTearCount) rebuildIndex(geometry, cloth);
+      commitGeometry(geometry, cloth, !snapshot.normals, snapshot.upload);
+    }, { wasm: useWasmCloth });
     function createRenderFor(section: SectionType) {
       return createTearableLayerRender(section, getNextTearSection(section), contentRef.current, uiState);
     }
-    function disposeRender(render: TearableLayerRender) {
-      render.texture.dispose();
-    }
+    const disposeRender = (render: TearableLayerRender) => render.texture.dispose();
     function repaintActiveSurfaces() {
       repaintTearableLayer(activeRender, currentSection, getNextTearSection(currentSection), contentRef.current, uiState);
       repaintTearableLayer(backRender, getNextTearSection(currentSection), getNextTearSection(getNextTearSection(currentSection)), contentRef.current, uiState);
@@ -116,37 +79,76 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       material.needsUpdate = true;
       backMaterial.needsUpdate = true;
     }
-    if (import.meta.env.DEV) {
-      (window as TearDebugWindow).__tearState = () => ({
-        section: currentSection,
-        nextSection: getNextTearSection(currentSection),
+    const inputController = createTearableInputController();
+    const exposeDebugState = shouldExposeTearDebug(window);
+    const clearDebugState = exposeDebugState
+      ? exposeTearDebugState(() => ({
+        currentSection,
         phase,
         elapsed,
         dropStarted,
         settling: phase === 'torn' && elapsed < settleUntil,
         advanceCooldown,
-        passives: passives.length,
+        passives,
         mouse: { x: mouse.x, y: mouse.y, px: mouse.px, py: mouse.py, down: mouse.down, active: mouse.active },
-        focusedInput: uiState.focusedInput,
-        selectedThoughtId: uiState.selectedThoughtId,
-        inputs: { signal: uiState.signalInput, rec: uiState.recInput, pulledSignal: uiState.pulledSignal, queuedRec: uiState.queuedRec },
+        pointers: pointerTracker.debugPointers(),
         tearWork,
-        hitRegions: activeHitRegions.map(({ id, kind, action, inputKey, x, y, width, height }) => ({ id, kind, action, inputKey, x, y, width, height })),
+        passiveWorker: passiveWorkers.getStatus(passives),
+        activeWorker: activeWorkers.getStatus(),
+        textureUpload: { active: activeRender.textureUpload.stats, back: backRender.textureUpload.stats },
+        hitRegions: activeHitRegions,
         cloth: getClothDebugState(cloth),
-      });
+      }))
+      : null;
+    function updateDebugDataset() {
+      if (!exposeDebugState) return;
+      updateTearDebugDataset(renderer, currentSection, phase, passives.length, passiveWorkers.getStatus(passives).active, getClothDebugState(cloth));
     }
-	    function resize() {
-	      const rect = host.getBoundingClientRect();
-	      width = Math.max(1, rect.width);
-	      height = Math.max(1, rect.height);
-	      renderer.setSize(width, height, false);
-	      const viewportAspect = width / height;
-	      const nextLayout = viewportAspect < 0.72 ? 'portrait' : 'landscape';
-	      if (uiState.layout !== nextLayout) {
-	        uiState.layout = nextLayout;
-	        repaintActiveSurfaces();
-	      }
-	      const pageAspect = PAGE_W / PAGE_H;
+    function disposeFallingSheet(passive: PassiveCloth) {
+      passiveWorkers.dispose(passive);
+      disposePassive(passive, scene);
+    }
+    function initActiveWorkerForCurrentCloth() {
+      activeWorkers.init(cloth);
+    }
+    function postActiveWorkerCommand(command: Parameters<ActiveClothWorkerController['command']>[0]) {
+      activeWorkers.command(command);
+    }
+    function hasTearingPointers() {
+      return pointerTracker.hasTearingPointers();
+    }
+    function syncMouseFromPointer(pointer: ActiveTearPointer) {
+      mouse.px = pointer.px;
+      mouse.py = pointer.py;
+      mouse.x = pointer.x;
+      mouse.y = pointer.y;
+      mouse.active = true;
+      mouse.down = hasTearingPointers();
+    }
+    function startPointerTear(pointer: ActiveTearPointer) {
+      if (pointer.tearing) return;
+      pointer.tearing = true;
+      phase = 'dragging';
+      syncMouseFromPointer(pointer);
+      beginGrab(cloth, pointer.x, pointer.y, pointer.slot);
+      postActiveWorkerCommand({ type: 'beginGrab', x: pointer.x, y: pointer.y, slot: pointer.slot });
+    }
+    function suspendActiveWorkerForPromotedSheet() {
+      activeWorkers.suspend();
+      activeStepCarry = 0;
+    }
+    function resize() {
+      const rect = host.getBoundingClientRect();
+      const width = Math.max(1, rect.width);
+      const height = Math.max(1, rect.height);
+      renderer.setSize(width, height, false);
+      const viewportAspect = width / height;
+      const nextLayout = viewportAspect < 0.72 ? 'portrait' : 'landscape';
+      if (uiState.layout !== nextLayout) {
+        uiState.layout = nextLayout;
+        repaintActiveSurfaces();
+      }
+      const pageAspect = PAGE_W / PAGE_H;
       let viewW = PAGE_W;
       let viewH = PAGE_H;
       if (viewportAspect > pageAspect) viewH = viewW / viewportAspect;
@@ -159,113 +161,30 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       camera.lookAt(0, 0, 0);
       camera.updateProjectionMatrix();
     }
-    function pointerToCanvas(event: PointerEvent) {
-      const rect = renderer.domElement.getBoundingClientRect();
-      ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(ndc, camera);
-      const clothHit = raycaster.intersectObject(mesh, false)[0];
-      if (clothHit) hit.copy(clothHit.point);
-      else raycaster.ray.intersectPlane(plane, hit);
-      mouse.px = mouse.x;
-      mouse.py = mouse.y;
-      mouse.x = hit.x;
-      mouse.y = hit.y;
-      mouse.active = true;
-      if (clothHit?.uv) {
-        return {
-          x: clothHit.uv.x * TEAR_TEXTURE_WIDTH,
-          y: (1 - clothHit.uv.y) * TEAR_TEXTURE_HEIGHT,
-        };
-      }
-      return {
-        x: (hit.x / PAGE_W + 0.5) * TEAR_TEXTURE_WIDTH,
-        y: (0.5 - hit.y / PAGE_H) * TEAR_TEXTURE_HEIGHT,
-      };
-    }
-    function findRegion(x: number, y: number) {
-      if (x < 0 || y < 0 || x > TEAR_TEXTURE_WIDTH || y > TEAR_TEXTURE_HEIGHT) return null;
-      for (let i = activeHitRegions.length - 1; i >= 0; i--) {
-        const region = activeHitRegions[i];
-        if (x >= region.x && x <= region.x + region.width && y >= region.y && y <= region.y + region.height) {
-          return region;
-        }
-      }
-      return null;
-    }
-    function updateCursor(region: TearableHitRegion | null, tearing: boolean) {
-      if (tearing) host.style.cursor = 'grabbing';
-      else if (region?.kind === 'input') host.style.cursor = 'text';
-      else if (region) host.style.cursor = 'pointer';
-      else host.style.cursor = 'grab';
-    }
-    function setFocusedInput(inputKey: TearableCanvasState['focusedInput']) {
-      uiState.focusedInput = inputKey;
-      if (!inputKey) {
-        hiddenInput.blur();
-        repaintActiveSurfaces();
-        return;
-      }
-      hiddenInput.value = inputKey === 'signal' ? uiState.signalInput : uiState.recInput;
-      hiddenInput.focus({ preventScroll: true });
-      hiddenInput.setSelectionRange(hiddenInput.value.length, hiddenInput.value.length);
-      repaintActiveSurfaces();
-    }
-    function activateRegion(region: TearableHitRegion) {
-      if (region.kind === 'link' && region.href) return void window.open(region.href, '_blank', 'noopener,noreferrer');
-      if (region.kind === 'input' && region.inputKey) return void setFocusedInput(region.inputKey);
-      if (region.kind === 'thought' && region.thoughtId) {
-        uiState.selectedThoughtId = region.thoughtId;
-        setFocusedInput(null);
-        repaintActiveSurfaces();
-        return;
-      }
-      if (region.action === 'back-thread') {
-        uiState.selectedThoughtId = null;
-        repaintActiveSurfaces();
-        return;
-      }
-      if (region.action === 'pull-signal') {
-        const quotes = contentRef.current.quotes;
-        const index = quotes.length ? Math.abs(uiState.signalInput.length * 7 + currentSection.length) % quotes.length : -1;
-        uiState.pulledSignal = index >= 0
-          ? `${quotes[index].text} - ${quotes[index].author}`
-          : 'Signal queued. Tear deeper for the next layer.';
-        repaintActiveSurfaces();
-        return;
-      }
-      if (region.action === 'queue-rec') {
-        const value = uiState.recInput.trim();
-        if (value) {
-          uiState.queuedRec = value;
-          uiState.recInput = '';
-          hiddenInput.value = '';
-          setFocusedInput(null);
-        }
-        repaintActiveSurfaces();
-      }
-    }
+    const pointerProjection = () => ({ renderer, camera, raycaster, ndc, hit, plane, cloth, mouse });
+    const pointerToCanvas = (event: PointerEvent, mode?: 'mesh' | 'plane') => pointerToTearablePoint({ event, mode, ...pointerProjection() });
+    const findRegion = (x: number, y: number) => findTearableHitRegion(activeHitRegions, x, y);
+    const updateCursor = (region: ReturnType<typeof findRegion>, tearing: boolean) => updateTearableCursor(host, region, tearing);
 	    function clearInteractionState() {
 	      const layout = uiState.layout;
 	      Object.assign(uiState, initialCanvasState, { layout });
-      hiddenInput.value = '';
-      hiddenInput.blur();
-      pointerRegion = null;
-      hoveredRegion = null;
-      tearArmed = false;
+      pointerTracker.clear();
       dropStarted = false;
-      dropSnapshotCreated = false;
+      dropSheetPromoted = false;
       dropStartedAt = 0;
       settleStartedAt = 0;
       settleUntil = 0;
       tearWork = 0;
       advanceCooldown = 0;
-      mouse.down = false;
+      activeStepCarry = 0;
+      mouse.down = hasTearingPointers();
       mouse.active = false;
       releaseGrab(cloth);
+      postActiveWorkerCommand({ type: 'releaseGrab' });
     }
     function resetExperience() {
-      passives.splice(0).forEach((passive) => disposePassive(passive, scene));
+      const activeSheetIsPassive = dropSheetPromoted;
+      passives.splice(0).forEach(disposeFallingSheet);
       disposeRender(activeRender);
       disposeRender(backRender);
       currentSection = SectionType.ABOUT;
@@ -273,22 +192,34 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       activeRender = createRenderFor(currentSection);
       backRender = createRenderFor(getNextTearSection(currentSection));
       activeHitRegions = activeRender.hitRegions;
-      resetCloth(cloth);
-      rebuildIndex(geometry, cloth);
-      commitGeometry(geometry, cloth);
-      material.map = activeRender.texture;
+      if (activeSheetIsPassive) {
+        const fresh = stage.createActiveSheet(activeRender);
+        cloth = fresh.cloth;
+        geometry = fresh.geometry;
+        material = fresh.material;
+        mesh = fresh.mesh;
+      } else {
+        resetCloth(cloth);
+        rebuildIndex(geometry, cloth);
+        commitGeometry(geometry, cloth);
+        material.map = activeRender.texture;
+      }
       backMaterial.map = backRender.texture;
       material.needsUpdate = true;
       backMaterial.needsUpdate = true;
+      initActiveWorkerForCurrentCloth();
       phase = 'idle';
       clearInteractionState();
       onRevealRef.current?.(currentSection);
     }
-    function addFallingSheet() {
-      passives.push(snapshotPassive(cloth, activeRender.texture, scene, POST_DROP_IMPULSE));
+    function promoteFallingSheet() {
+      suspendActiveWorkerForPromotedSheet();
+      const passive = promoteLivePassive(cloth, geometry, material, mesh, activeRender.texture, POST_DROP_IMPULSE);
+      passiveWorkers.attach(passive);
+      passives.push(passive);
       while (passives.length > MAX_PASSIVE_LAYERS) {
         const oldest = passives.shift();
-        if (oldest) disposePassive(oldest, scene);
+        if (oldest) disposeFallingSheet(oldest);
       }
     }
     function advance() {
@@ -296,127 +227,120 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       advancing = true;
       const next = getNextTearSection(currentSection);
       phase = 'advancing';
-      if (!dropSnapshotCreated) addFallingSheet();
+      if (!dropSheetPromoted) promoteFallingSheet();
       activeRender = backRender;
       currentSection = next;
       activeSectionRef.current = currentSection;
       backRender = createRenderFor(getNextTearSection(currentSection));
       activeHitRegions = activeRender.hitRegions;
-      resetCloth(cloth);
-      rebuildIndex(geometry, cloth);
-      commitGeometry(geometry, cloth);
-      material.map = activeRender.texture;
+      const fresh = stage.createActiveSheet(activeRender);
+      cloth = fresh.cloth;
+      geometry = fresh.geometry;
+      material = fresh.material;
+      mesh = fresh.mesh;
       backMaterial.map = backRender.texture;
       material.needsUpdate = true;
       backMaterial.needsUpdate = true;
-      pointerRegion = null; tearArmed = false; mouse.down = false; mouse.active = false; releaseGrab(cloth);
+      initActiveWorkerForCurrentCloth();
+      pointerTracker.clear();
+      mouse.down = false; mouse.active = false; releaseGrab(cloth);
       dropStarted = false;
-      dropSnapshotCreated = false;
+      dropSheetPromoted = false;
       dropStartedAt = 0; settleStartedAt = 0; settleUntil = 0; tearWork = 0;
+      activeStepCarry = 0;
       advanceCooldown = 1.0;
       phase = 'idle';
-      setFocusedInput(null);
       onRevealRef.current?.(currentSection);
       advancing = false;
     }
+    function maybeAdvanceAfterDrop() {
+      if (!dropStarted || !dropSheetPromoted || advancing) return;
+      if (elapsed - dropStartedAt < DROP_ADVANCE_DELAY) return;
+      advance();
+    }
     function maybeStartDrop(dt: number) {
       advanceCooldown = Math.max(0, advanceCooldown - dt);
-      if (advanceCooldown > 0 || mouse.down) return;
+      if (advanceCooldown > 0 || mouse.down || (phase === 'torn' && elapsed - settleStartedAt < DROP_REBOUND_HOLD)) return;
       const torn = tearProgress(cloth);
       const alive = aliveFraction(cloth);
       if (!dropStarted && (torn > DROP_TEAR_PROGRESS || alive < DROP_ALIVE_FRACTION || tearWork > DROP_TEAR_WORK)) {
         releaseGrab(cloth);
         mouse.down = false;
-        dropPins(cloth);
         dropStarted = true;
-        if (!dropSnapshotCreated) {
-          addFallingSheet();
-          dropSnapshotCreated = true;
+        if (!dropSheetPromoted) {
+          promoteFallingSheet();
+          dropSheetPromoted = true;
         }
         dropStartedAt = elapsed;
         phase = 'dropping';
-        advance();
       }
     }
     function handlePointerDown(event: PointerEvent) {
-      if (event.button !== 0) return;
+      if (event.button !== 0 && event.button !== 2) return;
       event.preventDefault();
       try { renderer.domElement.setPointerCapture(event.pointerId); } catch {}
       const point = pointerToCanvas(event);
-      pointerRegion = findRegion(point.x, point.y);
-      pointerStart.x = event.clientX;
-      pointerStart.y = event.clientY;
-      pointerStart.moved = false;
-      tearArmed = !pointerRegion;
+      const cutting = event.button === 2 || event.shiftKey;
+      const region = cutting ? null : findRegion(point.x, point.y);
+      const pointer = pointerTracker.begin(event, point, region, cutting);
+      if (!pointer) return;
       mouse.down = false;
       mouse.px = mouse.x;
       mouse.py = mouse.y;
-      updateCursor(pointerRegion, tearArmed);
+      updateCursor(region, pointer.tearArmed);
     }
     function handlePointerMove(event: PointerEvent) {
-      const point = pointerToCanvas(event);
-      const region = findRegion(point.x, point.y);
-      const dx = event.clientX - pointerStart.x;
-      const dy = event.clientY - pointerStart.y;
-      const movedSq = dx * dx + dy * dy;
-      if (mouse.down || pointerRegion || tearArmed) {
-        if (movedSq > 64) pointerStart.moved = true;
-        if (tearArmed && !mouse.down && movedSq > 64) {
-          mouse.down = true;
-          phase = 'dragging';
-          mouse.px = mouse.x;
-          mouse.py = mouse.y;
-          beginGrab(cloth, mouse.x, mouse.y);
-        }
-        if (pointerRegion && movedSq > 900) {
-          pointerRegion = null;
-          tearArmed = false;
-          setFocusedInput(null);
-          mouse.down = true;
-          phase = 'dragging';
-          mouse.px = mouse.x;
-          mouse.py = mouse.y;
-          beginGrab(cloth, mouse.x, mouse.y);
-        }
-      }
-      if (!mouse.down) {
-        if (region !== hoveredRegion) hoveredRegion = region;
+      const existingPointer = pointerTracker.activePointers.get(event.pointerId);
+      const point = pointerToCanvas(event, existingPointer?.tearing ? 'plane' : 'mesh');
+      const region = existingPointer?.tearing ? null : findRegion(point.x, point.y);
+      const pointerUpdate = pointerTracker.update(event, point);
+      if (!pointerUpdate) {
         updateCursor(region, false);
         return;
       }
-      tearWork += Math.hypot(mouse.x - mouse.px, mouse.y - mouse.py);
-      moveGrab(cloth, mouse.x, mouse.y);
+      const { pointer, movedSq } = pointerUpdate;
+      if (pointer.tearing || pointer.region || pointer.tearArmed) {
+        if (pointer.tearArmed && !pointer.tearing && movedSq > 64) {
+          startPointerTear(pointer);
+        }
+        if (pointer.region && movedSq > 900) {
+          pointer.region = null;
+          pointer.tearArmed = false;
+          startPointerTear(pointer);
+        }
+      }
+      if (!pointer.tearing) {
+        updateCursor(region, false);
+        return;
+      }
+      tearWork += Math.hypot(pointer.x - pointer.px, pointer.y - pointer.py);
+      syncMouseFromPointer(pointer);
+      moveGrab(cloth, pointer.x, pointer.y, pointer.slot);
+      postActiveWorkerCommand({ type: 'moveGrab', x: pointer.x, y: pointer.y, slot: pointer.slot });
+      if (pointer.cutting) { cutClothSegment(cloth, pointer.px, pointer.py, pointer.x, pointer.y, CUT_RADIUS); postActiveWorkerCommand({ type: 'cutSegment', ax: pointer.px, ay: pointer.py, bx: pointer.x, by: pointer.y, radius: CUT_RADIUS }); }
       updateCursor(null, true);
     }
     function handlePointerUp(event: PointerEvent) {
-      const wasClick = !pointerStart.moved && pointerRegion && !dropStarted;
-      if (mouse.down) {
-        releaseGrab(cloth);
+      const pointer = pointerTracker.finish(event.pointerId);
+      if (!pointer) return;
+      const wasClick = event.type !== 'pointercancel' && !pointer.moved && pointer.region && !dropStarted;
+      if (pointer.tearing) { releaseGrab(cloth, pointer.slot); postActiveWorkerCommand({ type: 'releaseGrab', slot: pointer.slot }); }
+      mouse.down = hasTearingPointers();
+      if (pointer.tearing && !mouse.down) {
         settleStartedAt = elapsed;
         settleUntil = elapsed + RELEASE_SETTLE_MAX;
       }
-      mouse.down = false;
-      if (!dropStarted) phase = settleUntil > elapsed ? 'torn' : 'idle';
+      if (!dropStarted) phase = mouse.down ? 'dragging' : (settleUntil > elapsed ? 'torn' : 'idle');
       try { renderer.domElement.releasePointerCapture(event.pointerId); } catch {}
-      if (wasClick && pointerRegion) activateRegion(pointerRegion);
-      pointerRegion = null;
-      tearArmed = false;
-      const point = pointerToCanvas(event);
-      updateCursor(findRegion(point.x, point.y), false);
-    }
-    function handleInput() {
-      if (uiState.focusedInput === 'signal') uiState.signalInput = hiddenInput.value.slice(0, 80);
-      if (uiState.focusedInput === 'rec') uiState.recInput = hiddenInput.value.slice(0, 80);
-      repaintActiveSurfaces();
-    }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Enter') return;
-      event.preventDefault();
-      if (uiState.focusedInput === 'signal') activateRegion({ id: 'pull-signal', kind: 'button', action: 'pull-signal', x: 0, y: 0, width: 0, height: 0 });
-      if (uiState.focusedInput === 'rec') activateRegion({ id: 'queue-rec', kind: 'button', action: 'queue-rec', x: 0, y: 0, width: 0, height: 0 });
+      if (wasClick && pointer.region) inputController.activateRegion(pointer.region);
+      if (mouse.down) updateCursor(null, true);
+      else {
+        const point = pointerToCanvas(event);
+        updateCursor(findRegion(point.x, point.y), false);
+      }
     }
     function handleWindowKeyDown(event: KeyboardEvent) {
-      if (event.metaKey || event.ctrlKey || event.altKey || uiState.focusedInput) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key.toLowerCase() !== 'r') return;
       event.preventDefault();
       resetExperience();
@@ -427,45 +351,92 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       last = now;
       elapsed += dt;
       if (activeSectionRef.current !== currentSection && !mouse.down) {
-        passives.splice(0).forEach((passive) => disposePassive(passive, scene));
+        const activeSheetIsPassive = dropSheetPromoted;
+        passives.splice(0).forEach(disposeFallingSheet);
         currentSection = activeSectionRef.current;
         disposeRender(activeRender);
         disposeRender(backRender);
         activeRender = createRenderFor(currentSection);
         backRender = createRenderFor(getNextTearSection(currentSection));
         activeHitRegions = activeRender.hitRegions;
-        material.map = activeRender.texture;
-        backMaterial.map = backRender.texture;
-        resetCloth(cloth);
-        releaseGrab(cloth);
-        rebuildIndex(geometry, cloth);
-        commitGeometry(geometry, cloth);
-        material.map = activeRender.texture;
+        if (activeSheetIsPassive) {
+          const fresh = stage.createActiveSheet(activeRender);
+          cloth = fresh.cloth;
+          geometry = fresh.geometry;
+          material = fresh.material;
+          mesh = fresh.mesh;
+        } else {
+          material.map = activeRender.texture;
+          resetCloth(cloth);
+          releaseGrab(cloth);
+          rebuildIndex(geometry, cloth);
+          commitGeometry(geometry, cloth);
+          material.map = activeRender.texture;
+        }
         backMaterial.map = backRender.texture;
         material.needsUpdate = true;
         backMaterial.needsUpdate = true;
+        initActiveWorkerForCurrentCloth();
         clearInteractionState();
         phase = 'idle';
       }
       const settling = phase === 'torn' && elapsed < settleUntil, settleAge = settling ? elapsed - settleStartedAt : 0;
       const settleDamping = settling ? Math.max(0.925, 0.982 - Math.max(0, settleAge - 0.35) * 0.045) : undefined;
-      if (mouse.down || dropStarted || settling) stepActive(cloth, undefined, settleDamping, settling ? 0.5 : 1);
+      if (mouse.down || settling) {
+        activeStepCarry = Math.min(FIXED_PHYSICS_STEP * MAX_PHYSICS_STEPS, activeStepCarry + dt);
+        const activeSteps = Math.min(Math.floor(activeStepCarry / FIXED_PHYSICS_STEP), MAX_PHYSICS_STEPS);
+        const workerResult = activeWorkers.step(FIXED_PHYSICS_STEP, activeSteps, settleDamping, settling ? 0.5 : 1);
+        if (workerResult === 'posted') {
+          activeStepCarry -= activeSteps * FIXED_PHYSICS_STEP;
+        } else if (workerResult === 'unavailable') {
+          let mainSteps = 0;
+          while (activeStepCarry >= FIXED_PHYSICS_STEP && mainSteps < MAX_PHYSICS_STEPS) {
+            stepActive(cloth, undefined, settleDamping, settling ? 0.5 : 1, FIXED_PHYSICS_STEP);
+            activeStepCarry -= FIXED_PHYSICS_STEP;
+            mainSteps++;
+          }
+        }
+      } else {
+        activeStepCarry = 0;
+      }
       if (cloth.dirtyIndex) rebuildIndex(geometry, cloth);
       commitGeometry(geometry, cloth);
       maybeStartDrop(dt);
+      maybeAdvanceAfterDrop();
       if (settling && settleAge > RELEASE_SETTLE_MIN) {
         const { averageSpeed, maxSpeed } = getClothDebugState(cloth);
         if (averageSpeed < SETTLE_AVG_SPEED && maxSpeed < SETTLE_MAX_SPEED) settleUntil = elapsed;
       }
       if (phase === 'torn' && elapsed >= settleUntil && !dropStarted) phase = 'idle';
       for (let i = passives.length - 1; i >= 0; i--) {
-        stepPassive(passives[i], dt);
+        const passive = passives[i];
+        if (passive.workerId) {
+          advancePassiveVisual(passive, dt);
+          passive.stepCarry = Math.min(FIXED_PHYSICS_STEP * MAX_PHYSICS_STEPS, passive.stepCarry + dt);
+          const passiveSteps = Math.min(Math.floor(passive.stepCarry / FIXED_PHYSICS_STEP), MAX_PHYSICS_STEPS);
+          const workerResult = passiveWorkers.step(passive, FIXED_PHYSICS_STEP, passiveSteps);
+          if (workerResult === 'posted') {
+            passive.stepCarry -= passiveSteps * FIXED_PHYSICS_STEP;
+          } else if (workerResult === 'unavailable') {
+            passive.workerId = undefined;
+          }
+        }
+        if (!passive.workerId) {
+          passive.stepCarry = Math.min(FIXED_PHYSICS_STEP * MAX_PHYSICS_STEPS, passive.stepCarry + dt);
+          let passiveSteps = 0;
+          while (passive.stepCarry >= FIXED_PHYSICS_STEP && passiveSteps < MAX_PHYSICS_STEPS) {
+            stepPassive(passive, FIXED_PHYSICS_STEP);
+            passive.stepCarry -= FIXED_PHYSICS_STEP;
+            passiveSteps++;
+          }
+        }
         if (passives[i].age > PASSIVE_LIFE) {
-          disposePassive(passives[i], scene);
+          disposeFallingSheet(passives[i]);
           passives.splice(i, 1);
         }
       }
       backMesh.visible = mouse.down || dropStarted || phase === 'dragging' || phase === 'dropping' || phase === 'torn';
+      updateDebugDataset();
       renderer.render(scene, camera);
       raf = requestAnimationFrame(tick);
     }
@@ -476,15 +447,8 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
     renderer.domElement.addEventListener('pointerup', handlePointerUp);
     renderer.domElement.addEventListener('pointercancel', handlePointerUp);
     renderer.domElement.addEventListener('contextmenu', (event) => event.preventDefault());
-    hiddenInput.addEventListener('input', handleInput);
-    hiddenInput.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keydown', handleWindowKeyDown);
-    hiddenInput.addEventListener('blur', () => {
-      if (!disposed && uiState.focusedInput) {
-        uiState.focusedInput = null;
-        repaintActiveSurfaces();
-      }
-    });
+    initActiveWorkerForCurrentCloth();
     resize();
     raf = requestAnimationFrame(tick);
     document.fonts?.ready.then(() => {
@@ -498,21 +462,15 @@ export function LayeredTearableSite({ activeSection, content, onRevealSection }:
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
       renderer.domElement.removeEventListener('pointercancel', handlePointerUp);
-      hiddenInput.removeEventListener('input', handleInput);
-      hiddenInput.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keydown', handleWindowKeyDown);
-      if (import.meta.env.DEV) delete (window as TearDebugWindow).__tearState;
-      passives.forEach((passive) => disposePassive(passive, scene));
+      clearDebugState?.();
+      passives.forEach(disposeFallingSheet);
+      passiveWorkers.terminate();
+      activeWorkers.terminate();
       disposeRender(activeRender);
       disposeRender(backRender);
       geometry.dispose();
-      backGeometry.dispose();
       material.dispose();
-      backMaterial.dispose();
-      renderer.dispose();
-      renderer.domElement.remove();
-      hiddenInput.remove();
+      stage.disposeBase();
     };
-  }, []);
-	  return <main className="layered-tearable-site"><div ref={hostRef} className="layered-tearable-host" /><p className="sr-only">Interactive tearable profile. Click printed links and fields, or drag across the sheet to reveal the next layer.</p></main>;
-	}
+  }, []); return <main className="layered-tearable-site"><div ref={hostRef} className="layered-tearable-host" /><p className="sr-only">Interactive tearable profile. Click printed links and article cards, or drag across the sheet to reveal the next layer.</p></main>; }

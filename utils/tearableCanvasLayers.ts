@@ -4,12 +4,12 @@ import { getCanvasText } from './canvasCms';
 import { compactLabel, drawGear, drawRaggedRect, drawSpiral, drawWrappedText, htmlToText, roundedRect, summarize, uniqueAnchors, withAlpha } from './tearableCanvasDrawing';
 import { paintTearableMobileLayer } from './tearableMobileCanvasLayers';
 import { TEARABLE_PALETTES, TearablePalette } from './tearablePalettes';
+import { TearableTextureUpload, createTearableTextureUpload, syncTearableTextureUpload } from './tearableTextureUpload';
 
 export const TEAR_TEXTURE_WIDTH = 2048;
 export const TEAR_TEXTURE_HEIGHT = 1152;
 
-export type TearableInputKey = 'signal' | 'rec';
-export type TearableHitKind = 'link' | 'input' | 'button' | 'thought';
+export type TearableHitKind = 'link';
 
 export interface TearableCanvasContent {
   canvasCopy: CanvasCopyItem[];
@@ -23,12 +23,6 @@ export interface TearableCanvasContent {
 
 export interface TearableCanvasState {
   layout: 'landscape' | 'portrait';
-  focusedInput: TearableInputKey | null;
-  signalInput: string;
-  recInput: string;
-  selectedThoughtId: string | null;
-  pulledSignal: string | null;
-  queuedRec: string | null;
 }
 
 export interface TearableHitRegion {
@@ -39,14 +33,12 @@ export interface TearableHitRegion {
   width: number;
   height: number;
   href?: string;
-  inputKey?: TearableInputKey;
-  thoughtId?: string;
-  action?: 'pull-signal' | 'queue-rec' | 'back-thread';
 }
 
 export interface TearableLayerRender {
   canvas: HTMLCanvasElement;
-  texture: THREE.CanvasTexture;
+  texture: THREE.DataTexture;
+  textureUpload: TearableTextureUpload;
   hitRegions: TearableHitRegion[];
 }
 
@@ -91,13 +83,8 @@ export function createTearableLayerRender(
   canvas.width = TEAR_TEXTURE_WIDTH;
   canvas.height = TEAR_TEXTURE_HEIGHT;
   const hitRegions = paintTearableLayer(canvas, section, nextSection, content, state);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.needsUpdate = true;
-  return { canvas, texture, hitRegions };
+  const textureUpload = createTearableTextureUpload(canvas);
+  return { canvas, texture: textureUpload.texture, textureUpload, hitRegions };
 }
 
 export function repaintTearableLayer(
@@ -108,7 +95,7 @@ export function repaintTearableLayer(
   state: TearableCanvasState,
 ) {
   render.hitRegions = paintTearableLayer(render.canvas, section, nextSection, content, state);
-  render.texture.needsUpdate = true;
+  syncTearableTextureUpload(render.canvas, render.textureUpload);
 }
 
 function paintTearableLayer(
@@ -130,6 +117,7 @@ function paintTearableLayer(
   drawHeader(g, p, section, content);
 
   if (section === SectionType.ABOUT) renderProfile(g, p, content, regions);
+  // Thoughts article content is rendered only by the DOM overlay.
   if (section === SectionType.QUOTES) renderQuotes(g, p, content);
   if (section === SectionType.RECOMMENDATIONS) renderRecs(g, p, content, state, regions);
 
@@ -244,7 +232,7 @@ function renderQuotes(g: CanvasRenderingContext2D, p: TearablePalette, content: 
     return;
   }
 
-  const spread = { x: 170, y: 500, w: 1710, h: 520 };
+  const spread = { x: 150, y: 455, w: 1750, h: 590 };
   const count = quotes.length;
   const cols = count <= 3 ? count : count <= 6 ? 3 : count <= 12 ? 4 : 5;
   const rows = Math.ceil(count / cols);

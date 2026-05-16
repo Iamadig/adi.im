@@ -10,6 +10,7 @@ import './styles/content.css';
 import './styles/responsive.css';
 import './styles/print.css';
 import './styles/tearable-sheet.css';
+import './styles/tearable-thoughts-overlay.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
